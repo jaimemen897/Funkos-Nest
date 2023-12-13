@@ -12,6 +12,7 @@ export class FunkosService {
     const funko = new Funko()
     funko.id = this.idCount
     funko.name = createFunkoDto.name
+    funko.category = createFunkoDto.category
     this.idCount++
     this.funkoList.push(funko)
     return funko
@@ -29,6 +30,7 @@ export class FunkosService {
     const funko = this.findOne(id)
     if (funko) {
       funko.name = updateFunkoDto.name
+      funko.category = updateFunkoDto.category
       return funko
     }
   }
