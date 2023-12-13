@@ -1,26 +1,40 @@
-import { Injectable } from '@nestjs/common';
-import { CreateFunkoDto } from './dto/create-funko.dto';
-import { UpdateFunkoDto } from './dto/update-funko.dto';
+import { Injectable } from '@nestjs/common'
+import { CreateFunkoDto } from './dto/create-funko.dto'
+import { UpdateFunkoDto } from './dto/update-funko.dto'
+import { Funko } from './entities/funko.entity'
 
 @Injectable()
 export class FunkosService {
+  private funkoList: Funko[] = []
+  private idCount: number = 1
+
   create(createFunkoDto: CreateFunkoDto) {
-    return 'This action adds a new funko';
+    const funko = new Funko()
+    funko.id = this.idCount
+    funko.name = createFunkoDto.name
+    this.idCount++
+    this.funkoList.push(funko)
+    return funko
   }
 
   findAll() {
-    return `This action returns all funkos`;
+    return this.funkoList
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} funko`;
+    return this.funkoList.find((funko) => funko.id === id)
   }
 
   update(id: number, updateFunkoDto: UpdateFunkoDto) {
-    return `This action updates a #${id} funko`;
+    const funko = this.findOne(id)
+    if (funko) {
+      funko.name = updateFunkoDto.name
+      return funko
+    }
   }
 
   remove(id: number) {
-    return `This action removes a #${id} funko`;
+    const funkoIndex = this.funkoList.findIndex((funko) => funko.id === id)
+    this.funkoList.splice(funkoIndex, 1)
   }
 }

@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common'
-import { AppController } from './app.controller'
-import { AppService } from './app.service'
-import { FunkosModule } from './funkos/funkos.module';
-import { FunkosControllerController } from './funkos-controller/funkos-controller.controller';
+import { FunkosService } from './funkos/funkos.service'
+import { FunkosModule } from './funkos/funkos.module'
+import { FunkosController } from './funkos/funkos.controller'
 
 @Module({
   imports: [FunkosModule],
-  controllers: [AppController, FunkosControllerController],
-  providers: [AppService],
+  controllers: [FunkosController],
+  providers: [FunkosService],
 })
 export class AppModule {}

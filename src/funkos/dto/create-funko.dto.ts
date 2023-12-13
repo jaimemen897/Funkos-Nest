@@ -1,1 +1,3 @@
-export class CreateFunkoDto {}
+export class CreateFunkoDto {
+  name: string
+}
