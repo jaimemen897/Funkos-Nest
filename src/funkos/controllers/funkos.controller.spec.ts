@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { FunkosController } from './funkos.controller'
-import { FunkosService } from './funkos.service'
+import { FunkosService } from '../services/funkos.service'
 
 describe('FunkosController', () => {
   let controller: FunkosController
