@@ -1,5 +1,6 @@
-import { Funko } from '../entities/funko.entity'
+import { Category } from '../entities/funko.entity'
 import {
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -17,5 +18,7 @@ export class CreateFunkoDto {
   @IsInt({ message: 'El stock debe ser un número entero' })
   stock: number
   @IsString({ message: 'La categoría debe ser un string' })
-  category: Funko['category']
+  @IsNotEmpty({ message: 'La categoría no debe estar vacía' })
+  @IsEnum(Category, { message: 'La categoría no es válida' })
+  category: Category
 }

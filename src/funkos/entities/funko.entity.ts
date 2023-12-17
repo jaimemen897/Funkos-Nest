@@ -28,7 +28,7 @@ export class Funko {
   @IsInt({ message: 'El stock debe ser un número entero' })
   stock: number
   @IsNotEmpty({ message: 'La categoría no debe estar vacía' })
-  @IsEnum(Category)
+  @IsEnum(Category, { message: 'La categoría debe ser válida' })
   category: Category
 
   constructor() {
