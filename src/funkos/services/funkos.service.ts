@@ -23,11 +23,6 @@ export class FunkosService {
     return this.funkoList.map(this.funkoMapper.mapToResponseDto)
   }
 
-  private find(id: number) {
-    this.logger.log(`Finding funko with id ${id}`)
-    return this.funkoList.find((funko) => funko.id === id)
-  }
-
   findOne(id: number) {
     this.logger.log(`Finding funko with id ${id}`)
     const funko = this.find(id)
@@ -63,5 +58,10 @@ export class FunkosService {
     } else {
       this.funkoList.splice(funkoIndex, 1)
     }
+  }
+
+  private find(id: number) {
+    this.logger.log(`Finding funko with id ${id}`)
+    return this.funkoList.find((funko) => funko.id === id)
   }
 }

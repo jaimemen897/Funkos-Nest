@@ -8,7 +8,6 @@ import { ResponseFunkoDto } from '../dto/response-funko.dto'
 export class FunkosMapper {
   mapToEntityCreateDto(dto: CreateFunkoDto): Funko {
     const funko = new Funko()
-
     return { ...dto, ...funko }
   }
 

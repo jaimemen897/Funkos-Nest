@@ -6,6 +6,7 @@ import {
   HttpCode,
   Logger,
   Param,
+  ParseIntPipe,
   Post,
   Put,
 } from '@nestjs/common'
@@ -15,9 +16,9 @@ import { UpdateFunkoDto } from '../dto/update-funko.dto'
 
 @Controller(`funkos`)
 export class FunkosController {
-  constructor(private readonly funkosService: FunkosService) {}
-
   private logger = new Logger('FunkosController')
+
+  constructor(private readonly funkosService: FunkosService) {}
 
   @Post()
   create(@Body() createFunkoDto: CreateFunkoDto) {
@@ -32,14 +33,17 @@ export class FunkosController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     this.logger.log(`Finding funko with id ${id}`)
     return this.funkosService.findOne(+id)
   }
 
   @Put(':id')
   @HttpCode(201)
-  update(@Param('id') id: number, @Body() updateFunkoDto: UpdateFunkoDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateFunkoDto: UpdateFunkoDto,
+  ) {
     this.logger.log(`Updating funko with id ${id}`)
     return this.funkosService.update(+id, updateFunkoDto)
   }
