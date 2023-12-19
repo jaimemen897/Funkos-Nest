@@ -1,67 +1,93 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateFunkoDto } from '../dto/create-funko.dto'
 import { UpdateFunkoDto } from '../dto/update-funko.dto'
 import { FunkosMapper } from '../mapper/funkos-mapper'
 import { Funko } from '../entities/funko.entity'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { Category } from '../../category/entities/category.entity'
 
 @Injectable()
 export class FunkosService {
-  private funkoList: Funko[] = []
   private logger = new Logger('FunkosService')
 
-  constructor(private readonly funkoMapper: FunkosMapper) {}
+  constructor(
+    @InjectRepository(Funko)
+    private readonly funkoRepository: Repository<Funko>,
+    private readonly funkoMapper: FunkosMapper,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+  ) {}
 
-  create(createFunkoDto: CreateFunkoDto) {
-    this.logger.log('Creating a new funko')
-    const funkoToSave = this.funkoMapper.mapToEntityCreateDto(createFunkoDto)
-    this.funkoList.push(funkoToSave)
-    return this.funkoMapper.mapToResponseDto(funkoToSave)
-  }
-
-  findAll() {
+  async findAll() {
     this.logger.log('Finding all funkos')
-    return this.funkoList.map(this.funkoMapper.mapToResponseDto)
+    return this.funkoRepository.find()
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     this.logger.log(`Finding funko with id ${id}`)
-    const funko = this.find(id)
+    const funko = await this.funkoRepository
+      .createQueryBuilder('funko')
+      .leftJoinAndSelect('funko.category', 'category')
+      .where('funko.id = :id', { id })
+      .getOne()
+    if (funko) {
+      return this.funkoMapper.mapToResponseDto(funko)
+    } else {
+      throw new NotFoundException(`Funko #${id} not found`)
+    }
+  }
+
+  async checkCategoria(name: string) {
+    this.logger.log(`Finding category with name ${name}`)
+    const category = await this.categoryRepository
+      .createQueryBuilder('category')
+      .where('LOWER(category.name) = LOWER(:name)', {
+        name: name.toLowerCase(),
+      })
+      .getOne()
+    if (category) {
+      return category
+    } else {
+      throw new BadRequestException(`Category ${name} not found`)
+    }
+  }
+
+  async create(createFunkoDto: CreateFunkoDto) {
+    this.logger.log('Creating a new funko')
+    this.checkCategoria(createFunkoDto.category)
+    const funkoToSave = this.funkoMapper.mapToEntityCreateDto(createFunkoDto)
+    const funko = this.funkoRepository.create(funkoToSave)
+    await this.funkoRepository.save(funko)
+    return this.funkoMapper.mapToResponseDto(funko)
+  }
+
+  async update(id: number, updateFunkoDto: UpdateFunkoDto) {
+    this.logger.log(`Updating funko with id ${id}`)
+    const funko = this.funkoRepository
+      .createQueryBuilder('funko')
+      .where('funko.id = :id', { id })
+      .getOne()
     if (!funko) {
       throw new NotFoundException(`Funko #${id} not found`)
     } else {
-      return this.funkoMapper.mapToResponseDto(funko)
+      return updateFunkoDto.name
     }
   }
 
-  update(id: number, updateFunkoDto: UpdateFunkoDto) {
-    this.logger.log(`Updating funko with id ${id}`)
-    const funko = this.findOne(id)
-    if (funko) {
-      const updatedFunko = this.funkoMapper.mapToEntityUpdateDto(
-        updateFunkoDto,
-        this.funkoMapper.mapToEntityCreateDto(this.find(id)),
-      )
-      this.funkoList = this.funkoList.map((funko) =>
-        funko.id === id ? updatedFunko : funko,
-      )
-      return updatedFunko
-    } else {
-      throw new NotFoundException(`Funko #${id} not found`)
-    }
-  }
-
-  remove(id: number) {
+  async remove(id: number) {
     this.logger.log(`Deleting funko with id ${id}`)
-    const funkoIndex = this.funkoList.findIndex((funko) => funko.id === id)
-    if (funkoIndex === -1) {
+    const funko = await this.findOne(id)
+    if (!funko) {
       throw new NotFoundException(`Funko #${id} not found`)
-    } else {
-      this.funkoList.splice(funkoIndex, 1)
     }
+    return this.funkoRepository.delete(id)
   }
 
-  private find(id: number) {
-    this.logger.log(`Finding funko with id ${id}`)
-    return this.funkoList.find((funko) => funko.id === id)
-  }
+  //delete soft
 }

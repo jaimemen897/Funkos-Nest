@@ -1,4 +1,7 @@
-import { PartialType } from '@nestjs/mapped-types'
-import { Funko } from '../entities/funko.entity'
-
-export class ResponseFunkoDto extends PartialType(Funko) {}
+export class ResponseFunkoDto {
+  id: number
+  name: string
+  price: number
+  stock: number
+  category: string
+}

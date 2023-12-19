@@ -1,6 +1,4 @@
-import { Category } from '../entities/funko.entity'
 import {
-  IsEnum,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -21,6 +19,5 @@ export class CreateFunkoDto {
   stock: number
   @IsString({ message: 'La categoría debe ser un string' })
   @IsNotEmpty({ message: 'La categoría no debe estar vacía' })
-  @IsEnum(Category, { message: 'La categoría no es válida' })
-  category: Category
+  category: string
 }

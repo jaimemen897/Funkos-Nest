@@ -1,6 +1,6 @@
 services:
   postgres-db:
-    container_name: examen-db_postgres
+    container_name: db-postgree
     image: postgres:12-alpine
     restart: always
     env_file: .env
@@ -9,12 +9,12 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: database
     ports:
-      - ${POSTGRES_PORT}:5432
+      - 5432
       #volumes:
       #- ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - examen-network
+      - funko-network
 
 networks:
-  examen-network:
+  funko-network:
     driver: bridge

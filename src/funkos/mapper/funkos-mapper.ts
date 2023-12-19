@@ -16,6 +16,6 @@ export class FunkosMapper {
   }
 
   mapToResponseDto(entity: Funko): ResponseFunkoDto {
-    return { ...entity }
+    return { ...entity, category: entity.category.name }
   }
 }
