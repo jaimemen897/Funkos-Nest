@@ -24,7 +24,9 @@ export class CategoryService {
 
   async findOne(id: uuid) {
     this.logger.log(`Finding category with id ${id}`)
-    const category = await this.categoryRepository.findOne(id)
+
+    const category = await this.categoryRepository.findOneBy({ id })
+
     if (!category) {
       throw new NotFoundException(`Category #${id} not found`)
     } else {

@@ -26,7 +26,15 @@ export class FunkosService {
 
   async findAll() {
     this.logger.log('Finding all funkos')
-    return this.funkoRepository.find()
+    return this.funkoRepository
+      .createQueryBuilder('funko')
+      .leftJoinAndSelect('funko.category', 'category')
+      .getMany()
+      .then((funkos) => {
+        return funkos.map((funko) => {
+          return this.funkoMapper.mapToResponseDto(funko)
+        })
+      })
   }
 
   async findOne(id: number) {
@@ -60,24 +68,30 @@ export class FunkosService {
 
   async create(createFunkoDto: CreateFunkoDto) {
     this.logger.log('Creating a new funko')
-    this.checkCategoria(createFunkoDto.category)
-    const funkoToSave = this.funkoMapper.mapToEntityCreateDto(createFunkoDto)
-    const funko = this.funkoRepository.create(funkoToSave)
-    await this.funkoRepository.save(funko)
-    return this.funkoMapper.mapToResponseDto(funko)
+    const categoria = await this.checkCategoria(createFunkoDto.category)
+    const funkoToCreate = this.funkoMapper.mapToEntityCreateDto(
+      createFunkoDto,
+      categoria,
+    )
+    const funkoCreated = await this.funkoRepository.save(funkoToCreate)
+    return this.funkoMapper.mapToResponseDto(funkoCreated)
   }
 
   async update(id: number, updateFunkoDto: UpdateFunkoDto) {
     this.logger.log(`Updating funko with id ${id}`)
-    const funko = this.funkoRepository
-      .createQueryBuilder('funko')
-      .where('funko.id = :id', { id })
-      .getOne()
-    if (!funko) {
-      throw new NotFoundException(`Funko #${id} not found`)
+    const funkoToUpdate = await this.findOne(id)
+    let category: Category
+    if (funkoToUpdate.category) {
+      category = await this.checkCategoria(updateFunkoDto.category)
     } else {
-      return updateFunkoDto.name
+      category = await this.checkCategoria(funkoToUpdate.category)
     }
+    const funkoUpdated = await this.funkoRepository.save({
+      ...funkoToUpdate,
+      ...updateFunkoDto,
+      category,
+    })
+    return this.funkoMapper.mapToResponseDto(funkoUpdated)
   }
 
   async remove(id: number) {
