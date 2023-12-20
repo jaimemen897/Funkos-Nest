@@ -8,13 +8,7 @@ import { plainToClass } from 'class-transformer'
 
 @Injectable()
 export class FunkosMapper {
-  mapToEntityCreateDto(dto: CreateFunkoDto, category: Category): Funko {
-    const funko = plainToClass(Funko, dto)
-    funko.category = category
-    return funko
-  }
-
-  mapToEntityUpdateDto(dto: UpdateFunkoDto, category: Category): Funko {
+  mapToEntity(dto: CreateFunkoDto, category: Category): Funko {
     const funko = plainToClass(Funko, dto)
     funko.category = category
     return funko

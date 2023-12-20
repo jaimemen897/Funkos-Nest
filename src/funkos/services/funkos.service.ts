@@ -56,8 +56,9 @@ export class FunkosService {
     const category = await this.categoryRepository
       .createQueryBuilder('category')
       .where('LOWER(category.name) = LOWER(:name)', {
-        name: name.toLowerCase(),
+        name: name,
       })
+      .andWhere('category.isDeleted = false')
       .getOne()
     if (category) {
       return category
@@ -69,7 +70,7 @@ export class FunkosService {
   async create(createFunkoDto: CreateFunkoDto) {
     this.logger.log('Creating a new funko')
     const categoria = await this.checkCategoria(createFunkoDto.category)
-    const funkoToCreate = this.funkoMapper.mapToEntityCreateDto(
+    const funkoToCreate = this.funkoMapper.mapToEntity(
       createFunkoDto,
       categoria,
     )
@@ -81,7 +82,7 @@ export class FunkosService {
     this.logger.log(`Updating funko with id ${id}`)
     const funkoToUpdate = await this.findOne(id)
     let category: Category
-    if (funkoToUpdate.category) {
+    if (updateFunkoDto.category) {
       category = await this.checkCategoria(updateFunkoDto.category)
     } else {
       category = await this.checkCategoria(funkoToUpdate.category)
@@ -102,6 +103,4 @@ export class FunkosService {
     }
     return this.funkoRepository.delete(id)
   }
-
-  //delete soft
 }
