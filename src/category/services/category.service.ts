@@ -24,9 +24,7 @@ export class CategoryService {
 
   async findOne(id: uuid) {
     this.logger.log(`Finding category with id ${id}`)
-
     const category = await this.categoryRepository.findOneBy({ id })
-
     if (!category) {
       throw new NotFoundException(`Category #${id} not found`)
     } else {
@@ -36,6 +34,19 @@ export class CategoryService {
 
   async create(createCategoryDto: CreateCategoryDto) {
     this.logger.log('Creating a new category')
+    const existingCategory = await this.categoryRepository.findOneBy({
+      name: createCategoryDto.name,
+    })
+    if (existingCategory) {
+      if (!existingCategory.isDeleted) {
+        throw new NotFoundException(
+          `Category with name ${createCategoryDto.name} already exists`,
+        )
+      } else {
+        existingCategory.isDeleted = false
+        return this.categoryRepository.save(existingCategory)
+      }
+    }
     const categoryToSave = this.categoryRepository.create(createCategoryDto)
     const category = await this.categoryRepository.save(categoryToSave)
     return this.categoryMapper.mapToResponseDto(category)
