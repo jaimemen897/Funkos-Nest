@@ -52,10 +52,13 @@ export class CategoryService {
     return this.categoryMapper.mapToResponseDto(category)
   }
 
-  async update(id: number, updateCategoryDto: UpdateCategoryDto) {
+  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
     this.logger.log(`Updating category with id ${id}`)
     const category = await this.findOne(id)
     if (category) {
+      if (category.isDeleted) {
+        throw new NotFoundException(`Category #${id} is deleted`)
+      }
       const updatedCategory = this.categoryRepository.create({
         ...category,
         ...updateCategoryDto,
