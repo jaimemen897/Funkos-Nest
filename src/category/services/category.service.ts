@@ -19,7 +19,10 @@ export class CategoryService {
 
   async findAll() {
     this.logger.log('Finding all categories')
-    return this.categoryRepository.find()
+    const categories = await this.categoryRepository.find()
+    return categories.map((category) =>
+      this.categoryMapper.mapToResponseDto(category),
+    )
   }
 
   async findOne(id: uuid) {
