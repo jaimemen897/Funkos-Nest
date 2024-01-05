@@ -39,7 +39,7 @@ export class FunkosController {
   }
 
   @Put(':id')
-  @HttpCode(201)
+  @HttpCode(200)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateFunkoDto: UpdateFunkoDto,
