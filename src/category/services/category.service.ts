@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateCategoryDto } from '../dto/create-category.dto'
 import { UpdateCategoryDto } from '../dto/update-category.dto'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -42,7 +47,7 @@ export class CategoryService {
     })
     if (existingCategory) {
       if (!existingCategory.isDeleted) {
-        throw new NotFoundException(
+        throw new BadRequestException(
           `Category with name ${createCategoryDto.name} already exists`,
         )
       } else {
@@ -60,7 +65,7 @@ export class CategoryService {
     const category = await this.findOne(id)
     if (category) {
       if (category.isDeleted) {
-        throw new NotFoundException(`Category #${id} is deleted`)
+        throw new BadRequestException(`Category #${id} is deleted`)
       }
       const updatedCategory = this.categoryRepository.create({
         ...category,

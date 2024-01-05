@@ -97,10 +97,11 @@ export class FunkosService {
 
   async remove(id: number) {
     this.logger.log(`Deleting funko with id ${id}`)
-    const funko = await this.findOne(id)
-    if (!funko) {
+    const funkoToRemove = await this.funkoRepository.findOneBy({ id })
+    if (!funkoToRemove) {
       throw new NotFoundException(`Funko #${id} not found`)
     }
-    return this.funkoRepository.delete(id)
+    const funkoRemoved = await this.funkoRepository.remove(funkoToRemove)
+    return this.funkoMapper.mapToResponseDto(funkoRemoved)
   }
 }

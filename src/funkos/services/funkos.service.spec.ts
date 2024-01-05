@@ -50,7 +50,7 @@ describe('FunkosService', () => {
     it('should return an array of funkos', async () => {
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
+        getMany: jest.fn().mockResolvedValue(new Array<ResponseFunkoDto>()),
       }
 
       jest
@@ -63,7 +63,7 @@ describe('FunkosService', () => {
 
       const result = await service.findAll()
 
-      expect(result).toEqual([])
+      expect(result).toEqual(new Array<ResponseFunkoDto>())
     })
   })
 
@@ -181,6 +181,31 @@ describe('FunkosService', () => {
       expect(service.checkCategoria).toHaveBeenCalledTimes(1)
     })
 
+    it('should update a funko with category disney', async () => {
+      const updateFunkoDto = new UpdateFunkoDto()
+      const mockFunko = new Funko()
+      const mockCategory = new Category()
+      mockCategory.name = 'disney'
+      updateFunkoDto.category = 'disney'
+      const mockResponseFunkoDto = new ResponseFunkoDto()
+
+      jest.spyOn(service, 'findOne').mockResolvedValue(mockResponseFunkoDto)
+
+      jest.spyOn(service, 'checkCategoria').mockResolvedValue(mockCategory)
+
+      jest.spyOn(funkoRepository, 'save').mockResolvedValue(mockFunko)
+
+      jest
+        .spyOn(mapper, 'mapToResponseDto')
+        .mockReturnValue(mockResponseFunkoDto)
+
+      expect(await service.update(1, updateFunkoDto)).toEqual(
+        mockResponseFunkoDto,
+      )
+      expect(service.findOne).toHaveBeenCalledTimes(1)
+      expect(service.checkCategoria).toHaveBeenCalledTimes(1)
+    })
+
     it('should throw 404 not found', async () => {
       const updateFunkoDto = new UpdateFunkoDto()
       jest.spyOn(service, 'findOne').mockRejectedValue(new Error())
@@ -253,16 +278,23 @@ describe('FunkosService', () => {
 
   describe('delete', () => {
     it('should remove a funko', async () => {
+      const mockFunko = new Funko()
       const mockResponseFunkoDto = new ResponseFunkoDto()
 
-      jest.spyOn(service, 'findOne').mockResolvedValue(mockResponseFunkoDto)
+      jest.spyOn(funkoRepository, 'findOneBy').mockResolvedValue(mockFunko)
 
-      jest.spyOn(funkoRepository, 'delete').mockResolvedValue(undefined)
+      jest.spyOn(funkoRepository, 'remove').mockResolvedValue(mockFunko)
+
+      jest
+        .spyOn(mapper, 'mapToResponseDto')
+        .mockReturnValue(mockResponseFunkoDto)
+
+      expect(await service.remove(1)).toEqual(mockResponseFunkoDto)
     })
 
     it('should throw 404 not found', async () => {
-      jest.spyOn(service, 'findOne').mockRejectedValue(new Error())
-      await expect(service.remove(1)).rejects.toThrow()
+      jest.spyOn(funkoRepository, 'findOneBy').mockResolvedValue(null)
+      await expect(service.remove(1)).rejects.toThrow(NotFoundException)
     })
   })
 
