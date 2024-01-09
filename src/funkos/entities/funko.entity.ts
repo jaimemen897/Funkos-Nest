@@ -31,7 +31,12 @@ export class Funko {
   @IsPositive({ message: 'El stock debe ser positivo' })
   @IsInt({ message: 'El stock debe ser un número entero' })
   stock: number
-  @Column('varchar', { length: 255, nullable: false, name: 'image' })
+  @Column('varchar', {
+    length: 255,
+    nullable: false,
+    name: 'image',
+    default: Funko.IMAGE_DEFAULT,
+  })
   @IsNotEmpty({ message: 'La imagen no debe estar vacía' })
   @IsString({ message: 'La imagen debe ser un string' })
   image: string = Funko.IMAGE_DEFAULT

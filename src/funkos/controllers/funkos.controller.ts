@@ -103,11 +103,10 @@ export class FunkosController {
   async updateImage(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
   ) {
     this.logger.log(`Actualizando imagen al producto con ${id}:  ${file}`)
 
-    return await this.funkosService.updateImage(id, file, req, false)
+    return await this.funkosService.updateImage(id, file)
   }
 
   @Delete(':id')

@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { CategoryModule } from './category/module/category.module'
 import { CategoryMapper } from './category/mapper/category-mapper'
 import { FunkosMapper } from './funkos/mapper/funkos-mapper'
-import { StorageModule } from './storage/storage.module';
+import { StorageModule } from './storage/storage.module'
 
 @Module({
   imports: [

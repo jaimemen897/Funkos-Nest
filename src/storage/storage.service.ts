@@ -41,18 +41,6 @@ export class StorageService {
     }
   }
 
-  getFileNameWithoutUrl(fileUrl: string): string {
-    try {
-      const url = new URL(fileUrl)
-      const pathname = url.pathname
-      const segments = pathname.split('/')
-      return segments[segments.length - 1]
-    } catch (error) {
-      this.logger.error(error)
-      return fileUrl
-    }
-  }
-
   removeFile(filename: string): void {
     this.logger.log(`Eliminando fichero ${filename}`)
     const file = join(
