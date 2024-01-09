@@ -16,6 +16,7 @@ import { Category } from '../../category/entities/category.entity'
 
 @Entity({ name: 'funkos' })
 export class Funko {
+  public static IMAGE_DEFAULT = 'default.jpg'
   @PrimaryGeneratedColumn({ type: 'int' })
   @IsNumber({}, { message: 'El id debe ser un número' })
   id: number
@@ -30,6 +31,10 @@ export class Funko {
   @IsPositive({ message: 'El stock debe ser positivo' })
   @IsInt({ message: 'El stock debe ser un número entero' })
   stock: number
+  @Column('varchar', { length: 255, nullable: false, name: 'image' })
+  @IsNotEmpty({ message: 'La imagen no debe estar vacía' })
+  @IsString({ message: 'La imagen debe ser un string' })
+  image: string = Funko.IMAGE_DEFAULT
   @IsNotEmpty({ message: 'La categoría no debe estar vacía' })
   @ManyToOne(() => Category, (category) => category.funkos)
   @JoinColumn({ name: 'category_id' })

@@ -2,6 +2,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsString,
 } from 'class-validator'
@@ -18,6 +19,10 @@ export class CreateFunkoDto {
   @IsInt({ message: 'El stock debe ser un número entero' })
   @IsPositive({ message: 'El stock debe ser positivo' })
   stock: number
+  @IsString({ message: 'La imagen debe ser un string' })
+  @IsOptional()
+  @Transform(({ value }) => value.trim())
+  image?: string
   @IsString({ message: 'La categoría debe ser un string' })
   @IsNotEmpty({ message: 'La categoría no debe estar vacía' })
   category: string
