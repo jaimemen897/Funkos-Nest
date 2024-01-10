@@ -56,6 +56,7 @@ describe('FunkosMapper', () => {
         name: 'Funko 1',
         price: 12.99,
         stock: 10,
+        image: 'imagen',
         category: category,
       }
       const actualFunko = funkosMapper.mapToEntity(createDto, category)
@@ -87,6 +88,7 @@ describe('FunkosMapper', () => {
         name: 'Funko 1',
         price: 12.99,
         stock: 10,
+        image: 'imagen',
         category: {
           id: '51310e5f-4b47-4994-9f66-975bbdacdd35',
           name: 'category',
@@ -102,6 +104,7 @@ describe('FunkosMapper', () => {
         name: 'Funko 1',
         price: 12.99,
         stock: 10,
+        image: 'imagen',
         category: 'category',
       }
       const actualFunko = funkosMapper.mapToResponseDto(funko)
@@ -109,6 +112,7 @@ describe('FunkosMapper', () => {
       expect(actualFunko.name).toEqual(expectedFunko.name)
       expect(actualFunko.price).toEqual(expectedFunko.price)
       expect(actualFunko.stock).toEqual(expectedFunko.stock)
+      expect(actualFunko.image).toEqual(expectedFunko.image)
       expect(actualFunko.category).toEqual(expectedFunko.category)
     })
   })

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -13,7 +14,9 @@ import { Repository } from 'typeorm'
 import { Category } from '../../category/entities/category.entity'
 import { StorageService } from '../../storage/storage.service'
 import { ResponseFunkoDto } from '../dto/response-funko.dto'
-import { FunkoNotificationGateway } from '../../websockets/funko-notification.gateway'
+import { NotificationGateway } from '../../websockets/notification.gateway'
+import { Cache } from 'cache-manager'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 
 @Injectable()
 export class FunkosService {
@@ -26,12 +29,18 @@ export class FunkosService {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     private readonly storageService: StorageService,
-    private productsNotificationsGateway: FunkoNotificationGateway,
+    private notificationGateway: NotificationGateway,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async findAll() {
+  async findAll(): Promise<ResponseFunkoDto[]> {
     this.logger.log('Finding all funkos')
-    return await this.funkoRepository
+    const funkos: ResponseFunkoDto[] = await this.cacheManager.get('funkos')
+    if (funkos) {
+      this.logger.log('Funkos from cache')
+      return funkos
+    }
+    const res = await this.funkoRepository
       .find({
         relations: {
           category: true,
@@ -42,16 +51,27 @@ export class FunkosService {
           return this.funkoMapper.mapToResponseDto(funko)
         })
       })
+    await this.cacheManager.set('funkos', res, 60)
+    return res
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<ResponseFunkoDto> {
     this.logger.log(`Finding funko with id ${id}`)
+
+    const cachedFunko: ResponseFunkoDto = await this.cacheManager.get(
+      `funko-${id}`,
+    )
+    if (cachedFunko) {
+      this.logger.log(`Funko #${id} from cache`)
+      return cachedFunko
+    }
     const funko = await this.funkoRepository
       .createQueryBuilder('funko')
       .leftJoinAndSelect('funko.category', 'category')
       .where('funko.id = :id', { id })
       .getOne()
     if (funko) {
+      await this.cacheManager.set(`funko-${id}`, funko, 60)
       return this.funkoMapper.mapToResponseDto(funko)
     } else {
       throw new NotFoundException(`Funko #${id} not found`)
@@ -84,6 +104,7 @@ export class FunkosService {
     const funkoCreated = await this.funkoRepository.save(funkoToCreate)
     const dto = this.funkoMapper.mapToResponseDto(funkoCreated)
     this.onChange('CREATE', dto)
+    await this.invalidateCache('all-funkos')
     return dto
   }
 
@@ -103,6 +124,8 @@ export class FunkosService {
     })
     const dto = this.funkoMapper.mapToResponseDto(funkoUpdated)
     this.onChange('UPDATE', dto)
+    await this.invalidateCache(`funko-${id}`)
+    await this.invalidateCache('all-funkos')
     return dto
   }
 
@@ -128,6 +151,8 @@ export class FunkosService {
     const funkoUpdated = await this.funkoRepository.save(funkoToUpdate)
     const dto = this.funkoMapper.mapToResponseDto(funkoUpdated)
     this.onChange('UPDATE', dto)
+    await this.invalidateCache(`funko-${id}`)
+    await this.invalidateCache('all-funkos')
     return dto
   }
 
@@ -148,6 +173,8 @@ export class FunkosService {
     const funkoRemoved = await this.funkoRepository.remove(funkoToRemove)
     const dto = this.funkoMapper.mapToResponseDto(funkoRemoved)
     this.onChange('DELETE', dto)
+    await this.invalidateCache(`funko-${id}`)
+    await this.invalidateCache('all-funkos')
     return dto
   }
 
@@ -155,6 +182,13 @@ export class FunkosService {
     tipo: 'CREATE' | 'UPDATE' | 'DELETE',
     data: ResponseFunkoDto,
   ) {
-    this.productsNotificationsGateway.sendMessage(tipo, data)
+    this.notificationGateway.sendMessage(tipo, data)
+  }
+
+  private async invalidateCache(keyPattern: string) {
+    const cacheKeys = await this.cacheManager.store.keys()
+    const keysToDelete = cacheKeys.filter((key) => key.includes(keyPattern))
+    const promises = keysToDelete.map((key) => this.cacheManager.del(key))
+    await Promise.all(promises)
   }
 }

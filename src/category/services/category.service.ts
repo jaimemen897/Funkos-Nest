@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -11,6 +12,10 @@ import { Category } from '../entities/category.entity'
 import { Repository } from 'typeorm'
 import { v4 as uuid } from 'uuid'
 import { CategoryMapper } from '../mapper/category-mapper'
+import { NotificationGateway } from '../../websockets/notification.gateway'
+import { CategoryResponseDto } from '../dto/category-response.dto'
+import { Cache } from 'cache-manager'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 
 @Injectable()
 export class CategoryService {
@@ -20,23 +25,42 @@ export class CategoryService {
     private readonly categoryMapper: CategoryMapper,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    private readonly notificationGateway: NotificationGateway,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async findAll() {
     this.logger.log('Finding all categories')
+    const categoriesFromCache: CategoryResponseDto[] =
+      await this.cacheManager.get('categories')
+    if (categoriesFromCache) {
+      this.logger.log('Categories from cache')
+      return categoriesFromCache
+    }
     const categories = await this.categoryRepository.find()
-    return categories.map((category) =>
+    const dto = categories.map((category) =>
       this.categoryMapper.mapToResponseDto(category),
     )
+    await this.cacheManager.set('categories', dto)
+    return dto
   }
 
   async findOne(id: uuid) {
     this.logger.log(`Finding category with id ${id}`)
+    const categoryFromCache: CategoryResponseDto = await this.cacheManager.get(
+      `category-${id}`,
+    )
+    if (categoryFromCache) {
+      this.logger.log('Category from cache')
+      return categoryFromCache
+    }
     const category = await this.categoryRepository.findOneBy({ id })
     if (!category) {
       throw new NotFoundException(`Category #${id} not found`)
     } else {
-      return this.categoryMapper.mapToResponseDto(category)
+      const dto = this.categoryMapper.mapToResponseDto(category)
+      await this.cacheManager.set(`category-${id}`, dto)
+      return dto
     }
   }
 
@@ -57,7 +81,10 @@ export class CategoryService {
     }
     const categoryToSave = this.categoryRepository.create(createCategoryDto)
     const category = await this.categoryRepository.save(categoryToSave)
-    return this.categoryMapper.mapToResponseDto(category)
+    const dto = this.categoryMapper.mapToResponseDto(category)
+    this.onChange('CREATE', dto)
+    await this.invalidateCache('categories')
+    return dto
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto) {
@@ -73,7 +100,11 @@ export class CategoryService {
       })
       const categoryUpdated =
         await this.categoryRepository.save(updatedCategory)
-      return this.categoryMapper.mapToResponseDto(categoryUpdated)
+      const dto = this.categoryMapper.mapToResponseDto(categoryUpdated)
+      this.onChange('UPDATE', dto)
+      await this.invalidateCache(`category-${id}`)
+      await this.invalidateCache('categories')
+      return dto
     } else {
       throw new NotFoundException(`Category #${id} not found`)
     }
@@ -86,6 +117,24 @@ export class CategoryService {
       throw new NotFoundException(`Category #${id} not found`)
     }
     category.isDeleted = true
-    return this.categoryRepository.save(category)
+    const dto = await this.categoryRepository.save(category)
+    this.onChange('DELETE', dto)
+    await this.invalidateCache(`category-${id}`)
+    await this.invalidateCache('categories')
+    return dto
+  }
+
+  private onChange(
+    tipo: 'CREATE' | 'UPDATE' | 'DELETE',
+    data: CategoryResponseDto,
+  ) {
+    this.notificationGateway.sendMessage(tipo, data)
+  }
+
+  async invalidateCache(keyPattern: string) {
+    const cackeKeys = await this.cacheManager.store.keys()
+    const keysToDelete = cackeKeys.filter((key) => key.startsWith(keyPattern))
+    const promises = keysToDelete.map((key) => this.cacheManager.del(key))
+    await Promise.all(promises)
   }
 }

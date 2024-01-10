@@ -5,9 +5,11 @@ import { CategoryModule } from './category/module/category.module'
 import { CategoryMapper } from './category/mapper/category-mapper'
 import { FunkosMapper } from './funkos/mapper/funkos-mapper'
 import { StorageModule } from './storage/storage.module'
+import { CacheModule } from '@nestjs/cache-manager'
 
 @Module({
   imports: [
+    CacheModule.register(),
     FunkosModule,
     CategoryModule,
     TypeOrmModule.forRoot({

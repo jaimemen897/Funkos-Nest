@@ -7,12 +7,15 @@ import {
   Param,
   Post,
   Put,
+  UseInterceptors,
 } from '@nestjs/common'
 import { CategoryService } from '../services/category.service'
 import { CreateCategoryDto } from '../dto/create-category.dto'
 import { UpdateCategoryDto } from '../dto/update-category.dto'
+import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager'
 
 @Controller('category')
+@UseInterceptors(CacheInterceptor)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
@@ -23,11 +26,15 @@ export class CategoryController {
   }
 
   @Get()
+  @CacheKey('all_categories')
+  @CacheTTL(60)
   findAll() {
     return this.categoryService.findAll()
   }
 
   @Get(':id')
+  @CacheKey('one_category')
+  @CacheTTL(60)
   findOne(@Param('id') id: string) {
     return this.categoryService.findOne(id)
   }

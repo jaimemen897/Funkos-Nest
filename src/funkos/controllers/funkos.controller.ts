@@ -11,12 +11,10 @@ import {
   Patch,
   Post,
   Put,
-  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common'
-import { Request } from 'express'
 import { FunkosService } from '../services/funkos.service'
 import { CreateFunkoDto } from '../dto/create-funko.dto'
 import { UpdateFunkoDto } from '../dto/update-funko.dto'
@@ -24,8 +22,10 @@ import { FunkoExistsGuard } from '../guards/funko-exists.gurads'
 import { extname, parse } from 'path'
 import { diskStorage } from 'multer'
 import { FileInterceptor } from '@nestjs/platform-express'
+import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager'
 
 @Controller(`funkos`)
+@UseInterceptors(CacheInterceptor)
 export class FunkosController {
   private logger = new Logger('FunkosController')
 
@@ -38,12 +38,16 @@ export class FunkosController {
   }
 
   @Get()
+  @CacheKey('all_funkos')
+  @CacheTTL(60)
   findAll() {
     this.logger.log('Finding all funkos')
     return this.funkosService.findAll()
   }
 
   @Get(':id')
+  @CacheKey('one_funko')
+  @CacheTTL(60)
   findOne(@Param('id', ParseIntPipe) id: number) {
     this.logger.log(`Finding funko with id ${id}`)
     return this.funkosService.findOne(+id)
