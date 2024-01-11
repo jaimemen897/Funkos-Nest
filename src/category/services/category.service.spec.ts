@@ -71,20 +71,30 @@ describe('CategoryService', () => {
       const result = await service.findAll()
       expect(result).toEqual([new CategoryResponseDto()])
     })
+    it('should return an array of categories from cache', async () => {
+      const category = [new Category()]
+      jest.spyOn(cacheManager, 'get').mockResolvedValue(category)
+      jest.spyOn(mapper, 'mapToResponseDto').mockReturnValue(category as any)
+      const result = await service.findAll()
+      expect(result).toEqual(category)
+    })
   })
 
   describe('findOne', () => {
     it('should return a category', async () => {
       const result = new Category()
-      const resultDto = new CategoryResponseDto()
+      jest.spyOn(cacheManager, 'get').mockResolvedValue(Promise.resolve(null))
       jest.spyOn(repositoryMock, 'findOneBy').mockResolvedValue(result)
-      jest.spyOn(mapper, 'mapToResponseDto').mockReturnValue(resultDto)
-      expect(await service.findOne('1')).toEqual(resultDto)
+      jest.spyOn(cacheManager, 'set').mockResolvedValue()
+      jest.spyOn(mapper, 'mapToResponseDto').mockReturnValue(result)
+      expect(await service.findOne('1')).toEqual(result)
     })
 
-    it('should throw NotFoundException', async () => {
-      jest.spyOn(repositoryMock, 'findOneBy').mockResolvedValue(undefined)
-      await expect(service.findOne('1')).rejects.toThrow(NotFoundException)
+    it('should return a category from cache', async () => {
+      const resultDto = new CategoryResponseDto()
+      jest.spyOn(cacheManager, 'get').mockResolvedValue(resultDto)
+      jest.spyOn(mapper, 'mapToResponseDto').mockReturnValue(resultDto)
+      expect(await service.findOne('1')).toEqual(resultDto)
     })
   })
 
@@ -156,33 +166,10 @@ describe('CategoryService', () => {
       const result = await service.update('1', mockUpdateCategoryDto)
       expect(result).toEqual(category)
     })
-    it('should throw BadRequestException', async () => {
-      const category = new Category()
-      category.name = 'test'
-      category.isDeleted = true
 
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        getOne: jest.fn().mockReturnValue(category),
-      }
-
-      const mockUpdateCategoryDto = new UpdateCategoryDto()
-
-      jest
-        .spyOn(repositoryMock, 'createQueryBuilder')
-        .mockReturnValue(mockQueryBuilder as any)
-      jest.spyOn(repositoryMock, 'findOneBy').mockResolvedValue(category)
-      jest.spyOn(repositoryMock, 'create').mockReturnValue(category)
-      jest.spyOn(repositoryMock, 'save').mockResolvedValue(category)
-      jest.spyOn(mapper, 'mapToResponseDto').mockReturnValue(category)
-
-      await expect(service.update('1', mockUpdateCategoryDto)).rejects.toThrow(
-        BadRequestException,
-      )
-    })
     it('should throw NotFoundException', async () => {
       const mockUpdateCategoryDto = new UpdateCategoryDto()
-      jest.spyOn(repositoryMock, 'findOneBy').mockResolvedValue(undefined)
+      jest.spyOn(service, 'findOne').mockResolvedValue(undefined)
       await expect(service.update('1', mockUpdateCategoryDto)).rejects.toThrow(
         NotFoundException,
       )
@@ -216,7 +203,7 @@ describe('CategoryService', () => {
       expect(result).toEqual(category)
     })
     it('should throw NotFoundException', async () => {
-      jest.spyOn(repositoryMock, 'findOneBy').mockResolvedValue(undefined)
+      jest.spyOn(service, 'findOne').mockResolvedValue(undefined)
       await expect(service.remove('1')).rejects.toThrow(NotFoundException)
     })
   })

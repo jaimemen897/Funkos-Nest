@@ -145,7 +145,7 @@ describe('FunkosService', () => {
 
       jest
         .spyOn(notificationGatewayMock, 'sendMessage')
-        .mockResolvedValue('CREATED')
+        .mockResolvedValue('CREATE')
 
       jest.spyOn(service, 'checkCategoria').mockResolvedValue(mockCategory)
 
@@ -325,63 +325,106 @@ describe('FunkosService', () => {
     })
   })
 
-  describe('delete', () => {
-    it('should remove a funko', async () => {
+  describe('updateImage', () => {
+    it('should update a funko image', async () => {
       const mockFunko = new Funko()
       const mockResponseFunkoDto = new ResponseFunkoDto()
+      const mockFile: Express.Multer.File = {
+        fieldname: 'image',
+        originalname: 'image',
+        encoding: '7bit',
+        mimetype: 'image/jpeg',
+        destination: 'destination',
+        filename: 'filename',
+        path: 'path',
+        size: 1,
+        stream: null,
+        buffer: null,
+      }
 
       jest
         .spyOn(notificationGatewayMock, 'sendMessage')
-        .mockResolvedValue('deleted')
+        .mockResolvedValue('UPDATED')
 
       jest.spyOn(funkoRepository, 'findOneBy').mockResolvedValue(mockFunko)
 
-      jest.spyOn(funkoRepository, 'remove').mockResolvedValue(mockFunko)
+      jest.spyOn(storageService, 'removeFile').mockImplementation()
+
+      jest.spyOn(funkoRepository, 'save').mockResolvedValue(mockFunko)
 
       jest
         .spyOn(mapper, 'mapToResponseDto')
         .mockReturnValue(mockResponseFunkoDto)
 
-      jest.spyOn(cacheManager.store, 'keys').mockResolvedValue([])
-
       jest.spyOn(notificationGateway, 'sendMessage').mockImplementation()
 
-      expect(await service.remove(1)).toEqual(mockResponseFunkoDto)
+      jest.spyOn(cacheManager.store, 'keys').mockResolvedValue([])
+
+      jest.spyOn(cacheManager, 'set').mockResolvedValue()
+
+      expect(await service.updateImage(1, mockFile)).toEqual(
+        mockResponseFunkoDto,
+      )
     })
 
-    it('should throw 404 not found', async () => {
-      jest.spyOn(funkoRepository, 'findOneBy').mockResolvedValue(null)
-      await expect(service.remove(1)).rejects.toThrow(NotFoundException)
+    describe('delete', () => {
+      it('should remove a funko', async () => {
+        const mockFunko = new Funko()
+        const mockResponseFunkoDto = new ResponseFunkoDto()
+
+        jest
+          .spyOn(notificationGatewayMock, 'sendMessage')
+          .mockResolvedValue('deleted')
+
+        jest.spyOn(funkoRepository, 'findOneBy').mockResolvedValue(mockFunko)
+
+        jest.spyOn(funkoRepository, 'remove').mockResolvedValue(mockFunko)
+
+        jest
+          .spyOn(mapper, 'mapToResponseDto')
+          .mockReturnValue(mockResponseFunkoDto)
+
+        jest.spyOn(cacheManager.store, 'keys').mockResolvedValue([])
+
+        jest.spyOn(notificationGateway, 'sendMessage').mockImplementation()
+
+        expect(await service.remove(1)).toEqual(mockResponseFunkoDto)
+      })
+
+      it('should throw 404 not found', async () => {
+        jest.spyOn(funkoRepository, 'findOneBy').mockResolvedValue(null)
+        await expect(service.remove(1)).rejects.toThrow(NotFoundException)
+      })
     })
-  })
 
-  describe('checkCategoria', () => {
-    it('should return a category', async () => {
-      const result = new Category()
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        getOne: jest.fn().mockResolvedValue(result),
-      }
+    describe('checkCategoria', () => {
+      it('should return a category', async () => {
+        const result = new Category()
+        const mockQueryBuilder = {
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          getOne: jest.fn().mockResolvedValue(result),
+        }
 
-      jest
-        .spyOn(categoryRepository, 'createQueryBuilder')
-        .mockReturnValue(mockQueryBuilder as any)
+        jest
+          .spyOn(categoryRepository, 'createQueryBuilder')
+          .mockReturnValue(mockQueryBuilder as any)
 
-      expect(await service.checkCategoria('test')).toEqual(result)
-    })
+        expect(await service.checkCategoria('test')).toEqual(result)
+      })
 
-    it('should throw 400 bad request', async () => {
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        getOne: jest.fn().mockResolvedValue(null),
-      }
+      it('should throw 400 bad request', async () => {
+        const mockQueryBuilder = {
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          getOne: jest.fn().mockResolvedValue(null),
+        }
 
-      jest
-        .spyOn(categoryRepository, 'createQueryBuilder')
-        .mockReturnValue(mockQueryBuilder as any)
-      await expect(service.checkCategoria('test')).rejects.toThrow()
+        jest
+          .spyOn(categoryRepository, 'createQueryBuilder')
+          .mockReturnValue(mockQueryBuilder as any)
+        await expect(service.checkCategoria('test')).rejects.toThrow()
+      })
     })
   })
 })

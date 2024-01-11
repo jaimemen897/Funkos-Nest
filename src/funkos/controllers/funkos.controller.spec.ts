@@ -14,6 +14,7 @@ describe('FunkosController', () => {
     findOne: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateImage: jest.fn(),
     remove: jest.fn(),
   }
 
@@ -242,6 +243,92 @@ describe('FunkosController', () => {
       jest.spyOn(service, 'update').mockRejectedValue(new BadRequestException())
       await expect(controller.update(id, mockData)).rejects.toThrow(
         BadRequestException,
+      )
+    })
+  })
+
+  describe('updateImage', () => {
+    it('should update a funko image', async () => {
+      const id = 1
+      const mockResult: ResponseFunkoDto = new ResponseFunkoDto()
+      const mockFile: Express.Multer.File = {
+        fieldname: 'image',
+        originalname: 'image',
+        encoding: '7bit',
+        mimetype: 'image/jpeg',
+        destination: 'destination',
+        filename: 'filename',
+        path: 'path',
+        size: 1,
+        stream: null,
+        buffer: null,
+      }
+      jest.spyOn(service, 'updateImage').mockResolvedValue(mockResult)
+      await controller.updateImage(id, mockFile)
+      expect(service.updateImage).toHaveBeenCalledWith(id, mockFile)
+      expect(mockResult).toBeInstanceOf(ResponseFunkoDto)
+    })
+    it('bad request file too large', async () => {
+      const id = 1
+      const mockFile: Express.Multer.File = {
+        fieldname: 'image',
+        originalname: 'image',
+        encoding: '7bit',
+        mimetype: 'image/jpeg',
+        destination: 'destination',
+        filename: 'filename',
+        path: 'path',
+        size: 10000000,
+        stream: null,
+        buffer: null,
+      }
+      jest
+        .spyOn(service, 'updateImage')
+        .mockRejectedValue(new BadRequestException())
+      await expect(controller.updateImage(id, mockFile)).rejects.toThrow(
+        BadRequestException,
+      )
+    })
+    it('bad request file not image', async () => {
+      const id = 1
+      const mockFile: Express.Multer.File = {
+        fieldname: 'image',
+        originalname: 'image',
+        encoding: '7bit',
+        mimetype: 'text/plain',
+        destination: 'destination',
+        filename: 'filename',
+        path: 'path',
+        size: 1,
+        stream: null,
+        buffer: null,
+      }
+      jest
+        .spyOn(service, 'updateImage')
+        .mockRejectedValue(new BadRequestException())
+      await expect(controller.updateImage(id, mockFile)).rejects.toThrow(
+        BadRequestException,
+      )
+    })
+    it('should throw an error if funko not found', async () => {
+      const id = 1
+      const mockFile: Express.Multer.File = {
+        fieldname: 'image',
+        originalname: 'image',
+        encoding: '7bit',
+        mimetype: 'image/jpeg',
+        destination: 'destination',
+        filename: 'filename',
+        path: 'path',
+        size: 1,
+        stream: null,
+        buffer: null,
+      }
+      jest
+        .spyOn(service, 'updateImage')
+        .mockRejectedValue(new NotFoundException())
+      await expect(controller.updateImage(id, mockFile)).rejects.toThrow(
+        NotFoundException,
       )
     })
   })
