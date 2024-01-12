@@ -16,6 +16,12 @@ import { NotificationGateway } from '../../websockets/notification.gateway'
 import { CategoryResponseDto } from '../dto/category-response.dto'
 import { Cache } from 'cache-manager'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import {
+  FilterOperator,
+  FilterSuffix,
+  paginate,
+  PaginateQuery,
+} from 'nestjs-paginate'
 
 @Injectable()
 export class CategoryService {
@@ -29,26 +35,44 @@ export class CategoryService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async findAll() {
+  async findAll(query: PaginateQuery) {
     this.logger.log('Finding all categories')
-    const categoriesFromCache: CategoryResponseDto[] =
-      await this.cacheManager.get('categories')
-    if (categoriesFromCache) {
-      this.logger.log('Categories from cache')
-      return categoriesFromCache
-    }
-    const categories = await this.categoryRepository.find()
-    const dto = categories.map((category) =>
-      this.categoryMapper.mapToResponseDto(category),
+    this.logger.log(JSON.stringify(query))
+
+    const cache = await this.cacheManager.get(
+      `categories_page_${JSON.stringify(query)}`,
     )
-    await this.cacheManager.set('categories', dto)
-    return dto
+    if (cache) {
+      this.logger.log('Categories from cache')
+      return cache
+    }
+
+    const res = await paginate(query, this.categoryRepository, {
+      sortableColumns: ['name'],
+      defaultSortBy: [['name', 'ASC']],
+      searchableColumns: ['name'],
+      filterableColumns: {
+        name: [FilterOperator.EQ, FilterSuffix.NOT],
+        isDeleted: [FilterOperator.EQ, FilterSuffix.NOT],
+      },
+    })
+    if (!res) {
+      throw new NotFoundException('Categories not found')
+    }
+
+    await this.cacheManager.set(
+      `categories_page_${JSON.stringify(query)}`,
+      res,
+      60,
+    )
+
+    return res
   }
 
   async findOne(id: uuid) {
     this.logger.log(`Finding category with id ${id}`)
     const categoryFromCache: CategoryResponseDto = await this.cacheManager.get(
-      `category-${id}`,
+      `category_${id}`,
     )
     if (categoryFromCache) {
       this.logger.log('Category from cache')
@@ -59,7 +83,7 @@ export class CategoryService {
       throw new NotFoundException(`Category #${id} not found`)
     } else {
       const dto = this.categoryMapper.mapToResponseDto(category)
-      await this.cacheManager.set(`category-${id}`, dto)
+      await this.cacheManager.set(`category_${id}`, dto)
       return dto
     }
   }
@@ -102,7 +126,7 @@ export class CategoryService {
         await this.categoryRepository.save(updatedCategory)
       const dto = this.categoryMapper.mapToResponseDto(categoryUpdated)
       this.onChange('UPDATE', dto)
-      await this.invalidateCache(`category-${id}`)
+      await this.invalidateCache(`category_${id}`)
       await this.invalidateCache('categories')
       return dto
     } else {
@@ -119,7 +143,7 @@ export class CategoryService {
     category.isDeleted = true
     const dto = await this.categoryRepository.save(category)
     this.onChange('DELETE', dto)
-    await this.invalidateCache(`category-${id}`)
+    await this.invalidateCache(`category_${id}`)
     await this.invalidateCache('categories')
     return dto
   }

@@ -23,6 +23,7 @@ import { extname, parse } from 'path'
 import { diskStorage } from 'multer'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager'
+import { Paginate, PaginateQuery } from 'nestjs-paginate'
 
 @Controller(`funkos`)
 @UseInterceptors(CacheInterceptor)
@@ -31,18 +32,12 @@ export class FunkosController {
 
   constructor(private readonly funkosService: FunkosService) {}
 
-  @Post()
-  create(@Body() createFunkoDto: CreateFunkoDto) {
-    this.logger.log('Creating a new funko')
-    return this.funkosService.create(createFunkoDto)
-  }
-
   @Get()
   @CacheKey('all_funkos')
   @CacheTTL(60)
-  findAll() {
+  findAll(@Paginate() query: PaginateQuery) {
     this.logger.log('Finding all funkos')
-    return this.funkosService.findAll()
+    return this.funkosService.findAll(query)
   }
 
   @Get(':id')
@@ -51,6 +46,12 @@ export class FunkosController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     this.logger.log(`Finding funko with id ${id}`)
     return this.funkosService.findOne(+id)
+  }
+
+  @Post()
+  create(@Body() createFunkoDto: CreateFunkoDto) {
+    this.logger.log('Creating a new funko')
+    return this.funkosService.create(createFunkoDto)
   }
 
   @Put(':id')

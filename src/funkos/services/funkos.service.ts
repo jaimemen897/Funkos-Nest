@@ -17,6 +17,12 @@ import { ResponseFunkoDto } from '../dto/response-funko.dto'
 import { NotificationGateway } from '../../websockets/notification.gateway'
 import { Cache } from 'cache-manager'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import {
+  FilterOperator,
+  FilterSuffix,
+  paginate,
+  PaginateQuery,
+} from 'nestjs-paginate'
 
 @Injectable()
 export class FunkosService {
@@ -33,25 +39,49 @@ export class FunkosService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async findAll(): Promise<ResponseFunkoDto[]> {
+  async findAll(query: PaginateQuery) {
     this.logger.log('Finding all funkos')
-    const funkos: ResponseFunkoDto[] = await this.cacheManager.get('funkos')
-    if (funkos) {
+    this.logger.log(JSON.stringify(query))
+
+    const cache = await this.cacheManager.get(
+      `all_funkos-page-${JSON.stringify(query)}`,
+    )
+    if (cache) {
       this.logger.log('Funkos from cache')
-      return funkos
+      return cache
     }
-    const res = await this.funkoRepository
-      .find({
-        relations: {
-          category: true,
-        },
-      })
-      .then((funkos) => {
-        return funkos.map((funko) => {
-          return this.funkoMapper.mapToResponseDto(funko)
-        })
-      })
-    await this.cacheManager.set('funkos', res, 60)
+
+    const queryBuilder = this.funkoRepository
+      .createQueryBuilder('funko')
+      .leftJoinAndSelect('funko.category', 'category')
+
+    const pagination = await paginate(query, queryBuilder, {
+      sortableColumns: ['id', 'name', 'price', 'stock'],
+      defaultSortBy: [['id', 'ASC']],
+      searchableColumns: ['id', 'name', 'price', 'stock'],
+      filterableColumns: {
+        id: [FilterOperator.EQ, FilterSuffix.NOT],
+        name: [FilterOperator.CONTAINS],
+        price: [FilterOperator.EQ, FilterOperator.GT, FilterOperator.LT],
+        stock: [FilterOperator.EQ, FilterOperator.GT, FilterOperator.LT],
+      },
+      //si ponemos select [] hay que quitar el mapResponseDto
+    })
+
+    const res = {
+      data: (pagination.data ?? []).map((funko) =>
+        this.funkoMapper.mapToResponseDto(funko),
+      ),
+      meta: pagination.meta,
+      links: pagination.links,
+    }
+
+    await this.cacheManager.set(
+      `all_funkos-page-${JSON.stringify(query)}`,
+      res,
+      60,
+    )
+
     return res
   }
 

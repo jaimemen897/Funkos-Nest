@@ -6,6 +6,7 @@ import { CategoryResponseDto } from '../../src/category/dto/category-response.dt
 import { UpdateCategoryDto } from '../../src/category/dto/update-category.dto'
 import { CategoryController } from '../../src/category/controllers/category.controller'
 import { CategoryService } from '../../src/category/services/category.service'
+import { CacheModule } from '@nestjs/cache-manager'
 
 describe('categoryController (e2e)', () => {
   let app: INestApplication
@@ -37,6 +38,7 @@ describe('categoryController (e2e)', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
       controllers: [CategoryController],
       providers: [
         CategoryService,
