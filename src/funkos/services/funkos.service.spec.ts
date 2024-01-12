@@ -12,6 +12,7 @@ import { Cache } from 'cache-manager'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { StorageService } from '../../storage/storage.service'
 import { NotificationGateway } from '../../websockets/notification.gateway'
+import { Paginated } from 'nestjs-paginate'
 
 describe('FunkosService', () => {
   let service: FunkosService
@@ -80,28 +81,95 @@ describe('FunkosService', () => {
   })
 
   describe('findAll', () => {
-    it('should return an array of funkos', async () => {
-      const mockResult: Array<Funko> = []
+    it('should return a page of funkos', async () => {
+      const paginateOptions = {
+        page: 1,
+        limit: 10,
+        path: 'funkos',
+      }
+
+      const testFunkos = {
+        data: [],
+        meta: {
+          itemsPerPage: 10,
+          totalItems: 1,
+          totalPages: 1,
+          currentPage: 1,
+        },
+        links: {
+          current: 'http://localhost:3000/funkos?page=1&limit=10&sort=name:ASC',
+        },
+      } as Paginated<ResponseFunkoDto>
 
       jest.spyOn(cacheManager, 'get').mockResolvedValue(Promise.resolve(null))
       jest.spyOn(cacheManager, 'set').mockResolvedValue()
 
-      jest.spyOn(funkoRepository, 'find').mockResolvedValue(mockResult)
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([]),
+      }
+
+      jest
+        .spyOn(funkoRepository, 'createQueryBuilder')
+        .mockReturnValue(mockQueryBuilder as any)
 
       jest
         .spyOn(mapper, 'mapToResponseDto')
         .mockReturnValue(new ResponseFunkoDto())
 
-      const result = await service.findAll()
+      const result: any = await service.findAll(paginateOptions)
 
-      expect(result).toEqual(new Array<ResponseFunkoDto>())
-      expect(cacheManager.get).toHaveBeenCalledTimes(1)
-      expect(cacheManager.set).toHaveBeenCalledTimes(1)
+      expect(result.meta.itemsPerPage).toEqual(paginateOptions.limit)
+      expect(result.meta.currentPage).toEqual(paginateOptions.page)
+      expect(result.links.current).toEqual(
+        `funkos?page=${paginateOptions.page}&limit=${paginateOptions.limit}&sortBy=id:ASC`,
+      )
+      expect(cacheManager.get).toHaveBeenCalled()
+      expect(cacheManager.set).toHaveBeenCalled()
+    })
+    it('should return a page of funkos with cache', async () => {
+      const paginateOptions = {
+        page: 1,
+        limit: 10,
+        path: 'funkos',
+      }
+
+      const testFunkos = {
+        data: [],
+        meta: {
+          itemsPerPage: 10,
+          totalItems: 1,
+          totalPages: 1,
+          currentPage: 1,
+        },
+        links: {
+          current: 'http://localhost:3000/funkos?page=1&limit=10&sort=name:ASC',
+        },
+      } as Paginated<ResponseFunkoDto>
+
+      jest
+        .spyOn(cacheManager.store, 'keys')
+        .mockResolvedValue(['funkos:1:10:ASC'])
+
+      jest.spyOn(cacheManager, 'get').mockResolvedValue(testFunkos)
+
+      const result: any = await service.findAll(paginateOptions)
+
+      expect(result.meta.itemsPerPage).toEqual(paginateOptions.limit)
+      expect(result.meta.currentPage).toEqual(paginateOptions.page)
+      expect(result.links.current).toEqual(
+        `http://localhost:3000/funkos?page=${paginateOptions.page}&limit=${paginateOptions.limit}&sort=name:ASC`,
+      )
+      expect(cacheManager.get).toHaveBeenCalled()
     })
   })
 
   describe('findOne', () => {
     it('should return a funko', async () => {
+      jest.spyOn(cacheManager, 'get').mockResolvedValue(Promise.resolve(null))
       const result = new Funko()
       const resultDto = new ResponseFunkoDto()
       const mockQueryBuilder = {

@@ -11,6 +11,7 @@ import { UpdateCategoryDto } from '../dto/update-category.dto'
 import { Cache } from 'cache-manager'
 import { NotificationGateway } from '../../websockets/notification.gateway'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Paginated } from 'nestjs-paginate'
 
 describe('CategoryService', () => {
   let service: CategoryService
@@ -63,20 +64,83 @@ describe('CategoryService', () => {
 
   describe('findAll', () => {
     it('should return an array of categories', async () => {
-      const category = [new Category()]
-      jest.spyOn(repositoryMock, 'find').mockResolvedValue(category)
+      const paginateOptions = {
+        page: 1,
+        limit: 10,
+        path: 'categories',
+      }
+
+      const testCategories = {
+        data: [],
+        meta: {
+          itemsPerPage: 10,
+          totalItems: 1,
+          currentPage: 1,
+          totalPages: 1,
+        },
+        links: {
+          current:
+            'http://localhost:3000/categories?page=1&limit=10&sortBy=name',
+        },
+      } as Paginated<Category>
+
+      jest.spyOn(cacheManager, 'get').mockResolvedValue(Promise.resolve(null))
+      jest.spyOn(cacheManager, 'set').mockResolvedValue()
+
+      const mockQueryBuilder = {
+        take: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([testCategories, 1]),
+      }
+
       jest
-        .spyOn(mapper, 'mapToResponseDto')
-        .mockReturnValue(new CategoryResponseDto())
-      const result = await service.findAll()
-      expect(result).toEqual([new CategoryResponseDto()])
+        .spyOn(repositoryMock, 'createQueryBuilder')
+        .mockReturnValue(mockQueryBuilder as any)
+
+      const result: any = await service.findAll(paginateOptions)
+
+      expect(result.meta.itemsPerPage).toEqual(paginateOptions.limit)
+      expect(result.meta.currentPage).toEqual(paginateOptions.page)
+      expect(result.meta.totalPages).toEqual(1)
+      expect(result.links.current).toEqual(
+        'categories?page=1&limit=10&sortBy=name:ASC',
+      )
+      expect(cacheManager.get).toHaveBeenCalled()
+      expect(cacheManager.set).toHaveBeenCalled()
     })
+
     it('should return an array of categories from cache', async () => {
-      const category = [new Category()]
-      jest.spyOn(cacheManager, 'get').mockResolvedValue(category)
-      jest.spyOn(mapper, 'mapToResponseDto').mockReturnValue(category as any)
-      const result = await service.findAll()
-      expect(result).toEqual(category)
+      const paginateOptions = {
+        page: 1,
+        limit: 10,
+        path: 'categories',
+      }
+
+      const testCategories = {
+        data: [],
+        meta: {
+          itemsPerPage: 10,
+          totalItems: 1,
+          currentPage: 1,
+          totalPages: 1,
+        },
+        links: {
+          current:
+            'http://localhost:3000/categories?page=1&limit=10&sortBy=name',
+        },
+      } as Paginated<Category>
+
+      jest.spyOn(cacheManager, 'get').mockResolvedValue(testCategories)
+      const result: any = await service.findAll(paginateOptions)
+
+      expect(result.meta.itemsPerPage).toEqual(paginateOptions.limit)
+      expect(result.meta.currentPage).toEqual(paginateOptions.page)
+      expect(result.meta.totalPages).toEqual(1)
+      expect(result.links.current).toEqual(
+        'http://localhost:3000/categories?page=1&limit=10&sortBy=name',
+      )
+      expect(cacheManager.get).toHaveBeenCalled()
     })
   })
 
