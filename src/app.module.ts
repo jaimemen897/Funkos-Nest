@@ -7,6 +7,7 @@ import { StorageModule } from './storage/storage.module'
 import { CacheModule } from '@nestjs/cache-manager'
 import { ConfigModule } from '@nestjs/config'
 import { DatabaseModuleModule } from './config/database-module/database-module.module'
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DatabaseModuleModule } from './config/database-module/database-module.m
     CategoryModule,
     StorageModule,
     DatabaseModuleModule,
+    OrdersModule,
   ],
   providers: [CategoryMapper, FunkosMapper],
 })
