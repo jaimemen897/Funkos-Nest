@@ -1,10 +1,29 @@
-import { Module } from '@nestjs/common'
+import { Logger, Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ConfigModule } from '@nestjs/config'
 import * as process from 'process'
 
 @Module({
   imports: [
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async () => ({
+        type: 'mongodb',
+        uri: `mongodb://${process.env.DATABASE_USER}:${
+          process.env.DATABASE_PASSWORD
+        }@${process.env.MONGO_HOST}:${process.env.MONGO_PORT || 27017}/${
+          process.env.MONGO_DATABASE
+        }`,
+        retryAttempts: 5,
+        connectionFactory: (connection) => {
+          Logger.log(
+            `MongoDB readyState: ${connection.readyState}`,
+            'DatabaseModule',
+          )
+          return connection
+        },
+      }),
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: () => ({
@@ -21,5 +40,6 @@ import * as process from 'process'
     }),
   ],
   providers: [],
+  exports: [TypeOrmModule],
 })
 export class DatabaseModuleModule {}
