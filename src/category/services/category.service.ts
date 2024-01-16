@@ -148,17 +148,17 @@ export class CategoryService {
     return dto
   }
 
-  private onChange(
-    tipo: 'CREATE' | 'UPDATE' | 'DELETE',
-    data: CategoryResponseDto,
-  ) {
-    this.notificationGateway.sendMessage(tipo, data)
-  }
-
   async invalidateCache(keyPattern: string) {
     const cackeKeys = await this.cacheManager.store.keys()
     const keysToDelete = cackeKeys.filter((key) => key.startsWith(keyPattern))
     const promises = keysToDelete.map((key) => this.cacheManager.del(key))
     await Promise.all(promises)
+  }
+
+  private onChange(
+    tipo: 'CREATE' | 'UPDATE' | 'DELETE',
+    data: CategoryResponseDto,
+  ) {
+    this.notificationGateway.sendMessage(tipo, data)
   }
 }
