@@ -8,6 +8,7 @@ import { OrdersMapper } from '../mapper/order.mapper'
 @Module({
   imports: [TypeOrmModule.forFeature([Order], 'mongo')],
   controllers: [OrdersController],
+  exports: [TypeOrmModule],
   providers: [OrdersService, OrdersMapper],
 })
 export class OrdersModule {}

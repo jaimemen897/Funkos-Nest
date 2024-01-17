@@ -1,51 +1,44 @@
-import { Logger, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ConfigModule } from '@nestjs/config'
 import { Funko } from '../../funkos/entities/funko.entity'
 import { Category } from '../../category/entities/category.entity'
-import { Order } from '../../orders/entities/order.entity'
 import * as process from 'process'
+import { Order } from '../../orders/entities/order.entity'
 
 @Module({
   imports: [
+    ConfigModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: () => ({
-        name: 'postgres',
         type: 'postgres',
         host: process.env.POSTGRES_HOST || 'localhost',
         port: parseInt(process.env.POSTGRES_PORT) || 5432,
         username: process.env.DATABASE_USER,
         password: process.env.DATABASE_PASSWORD,
         database: process.env.DATABASE_NAME,
-        autoLoadEntities: true,
         entities: [Funko, Category],
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async () => ({
-        name: 'mongo', // Agrega un nombre a la conexión
-        type: 'mongodb',
-        uri: `mongodb://${process.env.MONGO_USER}:${
-          process.env.MONGO_PASSWORD
-        }@${process.env.MONGO_HOST}:${process.env.MONGO_PORT || 27017}/${
-          process.env.MONGO_DB
-        }`,
-        retryAttempts: 5,
-        entities: [Order],
-        connectionFactory: (connection) => {
-          Logger.log(
-            `MongoDB readyState: ${connection.readyState}`,
-            'DatabaseModule',
-          )
-          return connection
-        },
-      }),
+    TypeOrmModule.forRoot({
+      name: 'mongo',
+      type: 'mongodb',
+      username: 'funko',
+      password: 'funko',
+      port: 27017,
+      database: 'database',
+      retryAttempts: 5,
+      synchronize: true,
+      entities: [Order],
+      logging: 'all',
     }),
   ],
   providers: [],
-  exports: [TypeOrmModule],
+  exports: [
+    TypeOrmModule.forFeature([Funko, Category]),
+    TypeOrmModule.forFeature([Order]),
+  ],
 })
 export class DatabaseModule {}

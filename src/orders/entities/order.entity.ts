@@ -22,7 +22,7 @@ export class Client {
   email: string
   @Column()
   phoneNumber: string
-  @Column()
+  @Column(() => Address)
   address: Address
 }
 
@@ -43,9 +43,9 @@ export class Order {
   _id: ObjectId
   @Column()
   idClient: string
-  @Column()
+  @Column(() => Client)
   client: Client
-  @Column()
+  @Column(() => OrderLine)
   orderLines: OrderLine[]
   @Column()
   totalItems: number

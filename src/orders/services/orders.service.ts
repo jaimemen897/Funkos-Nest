@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { CreateOrderDto } from '../dto/create-order.dto'
 import { UpdateOrderDto } from '../dto/update-order.dto'
 import { Order } from '../entities/order.entity'
-import { MongoRepository, ObjectId } from 'typeorm'
+import { ObjectId, Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { OrdersMapper } from '../mapper/order.mapper'
 
@@ -10,7 +10,7 @@ import { OrdersMapper } from '../mapper/order.mapper'
 export class OrdersService {
   constructor(
     @InjectRepository(Order, 'mongo')
-    private readonly orderRepository: MongoRepository<Order>,
+    private readonly orderRepository: Repository<Order>,
     private readonly orderMapper: OrdersMapper,
   ) {}
 
@@ -43,7 +43,7 @@ export class OrdersService {
     return await this.orderRepository.remove(order)
   }
 
-  //clientExists(idClient)
+  //userExists(idClient)
   //getOrderByClient(idClient)
   //checkOrder(order)
   //reserveStock(order)

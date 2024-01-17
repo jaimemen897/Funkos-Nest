@@ -24,9 +24,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: admin
       MONGO_INITDB_DATABASE: database
     ports:
-      - ${MONGO_PORT}:27017
-    #volumes:
-      #- ./database/tienda.js:/docker-entrypoint-initdb.d/tienda.js:ro
+      - 27017:27017
+    volumes:
+      - ./database/funkos.js:/docker-entrypoint-initdb.d/funkos.js:ro
     networks:
       - funko-network
 networks:
