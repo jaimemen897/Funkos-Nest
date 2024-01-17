@@ -47,6 +47,9 @@ dependencies:
   nestjs-paginate:
     specifier: ^8.6.0
     version: 8.6.0(@nestjs/common@10.3.0)(@nestjs/swagger@7.1.17)(express@4.18.2)(fastify@4.25.2)(typeorm@0.3.17)
+  nestjs-typeorm-paginate:
+    specifier: ^4.0.4
+    version: 4.0.4(@nestjs/common@10.3.0)(typeorm@0.3.17)
   pg:
     specifier: ^8.11.3
     version: 8.11.3
@@ -4559,6 +4562,16 @@ packages:
       express: 4.18.2
       fastify: 4.25.2
       lodash: 4.17.21
+      typeorm: 0.3.17(mongodb@6.3.0)(pg@8.11.3)(ts-node@10.9.2)
+    dev: false
+
+  /nestjs-typeorm-paginate@4.0.4(@nestjs/common@10.3.0)(typeorm@0.3.17):
+    resolution: {integrity: sha512-arinWDc78wPV/EYWMmLYyeMSE5Lae1FHWD/2QpOdTmHaOVqK4PYf19EqZBqT9gbbPugkNW9JAMz3G2WmvSgR/A==}
+    peerDependencies:
+      '@nestjs/common': ^6.1.1 || ^5.6.2 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
+      typeorm: ^0.3.0
+    dependencies:
+      '@nestjs/common': 10.3.0(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.14)(rxjs@7.8.1)
       typeorm: 0.3.17(mongodb@6.3.0)(pg@8.11.3)(ts-node@10.9.2)
     dev: false
 

@@ -30,7 +30,7 @@ export class OrderLine {
   @Column()
   quantity: number
   @Column()
-  idFunko: string
+  idFunko: number
   @Column()
   price: number
   @Column()

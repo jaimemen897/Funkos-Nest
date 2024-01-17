@@ -1,24 +1,40 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateOrderDto } from '../dto/create-order.dto'
 import { UpdateOrderDto } from '../dto/update-order.dto'
 import { Order } from '../entities/order.entity'
 import { ObjectId, Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { OrdersMapper } from '../mapper/order.mapper'
+import { Funko } from '../../funkos/entities/funko.entity'
+import {
+  IPaginationOptions,
+  paginate,
+  Pagination,
+} from 'nestjs-typeorm-paginate'
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name)
+
   constructor(
+    @InjectRepository(Funko)
+    private readonly funkoRepository: Repository<Funko>,
     @InjectRepository(Order, 'mongo')
     private readonly orderRepository: Repository<Order>,
     private readonly orderMapper: OrdersMapper,
   ) {}
 
-  async findAll() {
-    return await this.orderRepository.find()
+  async findAll(options: IPaginationOptions): Promise<Pagination<Order>> {
+    return paginate<Order>(this.orderRepository, options)
   }
 
   async findOne(id: ObjectId) {
+    this.logger.log(`Finding order ${id}`)
     const order = await this.orderRepository.findOneBy({ _id: id })
     if (!order) {
       throw new NotFoundException(`Order #${id} not found`)
@@ -27,25 +43,122 @@ export class OrdersService {
   }
 
   async create(createOrderDto: CreateOrderDto) {
-    const order = this.orderMapper.toEntity(createOrderDto)
-    return await this.orderRepository.save(order)
+    this.logger.log(`Creating order ${createOrderDto}`)
+    console.log(createOrderDto)
+
+    const orderToBeSaved = this.orderMapper.toEntity(createOrderDto)
+
+    await this.checkOrder(orderToBeSaved)
+
+    const orderToSave = await this.reserveStockOrders(orderToBeSaved)
+
+    orderToSave.createdAt = new Date()
+    orderToSave.updatedAt = new Date()
+
+    return await this.orderRepository.save(orderToSave)
   }
 
   async update(id: ObjectId, updateOrderDto: UpdateOrderDto) {
-    const existingOrder = await this.findOne(id)
-    const updatedOrder = this.orderMapper.toEntity(updateOrderDto)
-    updatedOrder._id = existingOrder._id
-    return await this.orderRepository.save(updatedOrder)
+    this.logger.log(`Updating order ${id}`)
+    const orderToUpdate = await this.orderRepository.findOneBy({ _id: id })
+    if (!orderToUpdate) {
+      throw new NotFoundException(`Order #${id} not found`)
+    }
+    const orderToBeSaved = this.orderMapper.toEntity(updateOrderDto)
+
+    await this.returnStockOrders(orderToUpdate)
+    await this.checkOrder(orderToBeSaved)
+    const orderToSave = await this.reserveStockOrders(orderToBeSaved)
+
+    orderToSave.updatedAt = new Date()
+
+    return await this.orderRepository.save(orderToSave)
   }
 
   async remove(id: ObjectId) {
-    const order = await this.findOne(id)
-    return await this.orderRepository.remove(order)
+    this.logger.log(`Removing order ${id}`)
+
+    const orderToDelete = await this.orderRepository.findOneBy({ _id: id })
+    if (!orderToDelete) {
+      throw new NotFoundException(`Order #${id} not found`)
+    }
+    await this.returnStockOrders(orderToDelete)
+    await this.orderRepository.delete({ _id: id })
   }
 
   //userExists(idClient)
   //getOrderByClient(idClient)
   //checkOrder(order)
-  //reserveStock(order)
-  //returnStock(order)
+  private async checkOrder(order: Order) {
+    this.logger.log(`Checking order ${order._id}`)
+
+    if (!order.orderLines || order.orderLines.length === 0) {
+      throw new BadRequestException('Order must have at least one order line')
+    }
+
+    for (const orderLine of order.orderLines) {
+      const product = await this.funkoRepository.findOneBy({
+        id: orderLine.idFunko,
+      })
+      if (!product) {
+        throw new BadRequestException(
+          `Product ${orderLine.idFunko} does not exist`,
+        )
+      }
+      if (product.stock < orderLine.quantity && orderLine.quantity > 0) {
+        throw new BadRequestException(
+          `Product ${orderLine.idFunko} does not have enough stock`,
+        )
+      }
+      if (product.price != orderLine.price) {
+        throw new BadRequestException(
+          `Product ${orderLine.idFunko} price has changed`,
+        )
+      }
+    }
+  }
+
+  private async reserveStockOrders(order: Order): Promise<Order> {
+    this.logger.log(`Reserving stock for order ${order._id}`)
+
+    if (!order.orderLines || order.orderLines.length === 0) {
+      throw new BadRequestException('Order must have at least one order line')
+    }
+
+    for (const orderLine of order.orderLines) {
+      const product = await this.funkoRepository.findOneBy({
+        id: orderLine.idFunko,
+      })
+      product.stock -= orderLine.quantity
+      await this.funkoRepository.save(product)
+      orderLine.total = orderLine.quantity * orderLine.price
+    }
+
+    order.total = order.orderLines.reduce(
+      (sum, orderLine) => sum + orderLine.quantity * orderLine.price,
+      0,
+    )
+
+    order.totalItems = order.orderLines.reduce(
+      (sum, orderLine) => sum + orderLine.quantity,
+      0,
+    )
+
+    return order
+  }
+
+  private async returnStockOrders(order: Order): Promise<Order> {
+    this.logger.log(`Returning stock for order ${order._id}`)
+
+    if (order.orderLines) {
+      for (const orderLine of order.orderLines) {
+        const product = await this.funkoRepository.findOneBy({
+          id: orderLine.idFunko,
+        })
+        product.stock += orderLine.quantity
+        await this.funkoRepository.save(product)
+      }
+    }
+    return order
+  }
 }

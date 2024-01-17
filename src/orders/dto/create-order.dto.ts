@@ -64,10 +64,10 @@ export class OrderLineDto {
   @IsNotEmpty()
   quantity: number
 
-  @IsString()
-  @MaxLength(50)
+  @IsNumber()
+  @IsPositive()
   @IsNotEmpty()
-  idFunko: string
+  idFunko: number
 
   @IsString()
   @MaxLength(50)
@@ -86,8 +86,10 @@ export class CreateOrderDto {
   @IsNotEmpty()
   idClient: string
 
+  @IsNotEmpty()
   client: ClientDto
 
+  @IsNotEmpty()
   orderLines: OrderLineDto[]
 
   @IsNumber()
