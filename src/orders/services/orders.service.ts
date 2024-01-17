@@ -16,6 +16,7 @@ import {
   paginate,
   Pagination,
 } from 'nestjs-typeorm-paginate'
+import { User } from '../../users/entities/user.entity'
 
 @Injectable()
 export class OrdersService {
@@ -27,6 +28,8 @@ export class OrdersService {
     @InjectRepository(Order, 'mongo')
     private readonly orderRepository: Repository<Order>,
     private readonly orderMapper: OrdersMapper,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async findAll(options: IPaginationOptions): Promise<Pagination<Order>> {
@@ -86,9 +89,22 @@ export class OrdersService {
     await this.orderRepository.delete({ _id: id })
   }
 
-  //userExists(idClient)
-  //getOrderByClient(idClient)
-  //checkOrder(order)
+  async findByIdUser(idUser: string) {
+    this.logger.log(`Finding order by user ${idUser}`)
+    return await this.orderRepository.findBy({ idClient: idUser })
+  }
+
+  async userExists(idClient: number) {
+    this.logger.log(`Checking if user ${idClient} exists`)
+    const user = await this.userRepository.findOneBy({ id: idClient })
+    return !!user
+  }
+
+  async getOrderByUser(idUser: string): Promise<Order[]> {
+    this.logger.log(`Buscando pedidos por usuario ${idUser}`)
+    return await this.orderRepository.find({ where: { idClient: idUser } })
+  }
+
   private async checkOrder(order: Order) {
     this.logger.log(`Checking order ${order._id}`)
 

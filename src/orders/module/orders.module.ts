@@ -5,6 +5,7 @@ import { Order } from '../entities/order.entity'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { OrdersMapper } from '../mapper/order.mapper'
 import { Funko } from '../../funkos/entities/funko.entity'
+import { UsersService } from '../../users/services/users.service'
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { Funko } from '../../funkos/entities/funko.entity'
   ],
   controllers: [OrdersController],
   exports: [TypeOrmModule],
-  providers: [OrdersService, OrdersMapper],
+  providers: [OrdersService, OrdersMapper, UsersService],
 })
 export class OrdersModule {}
