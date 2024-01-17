@@ -14,6 +14,7 @@ import { OrdersService } from '../../orders/services/orders.service'
 import { UsersMapper } from '../mappers/users.mapper'
 import { BcryptService } from '../bcrypt.service'
 import { CreateOrderDto } from '../../orders/dto/create-order.dto'
+import { UpdateOrderDto } from '../../orders/dto/update-order.dto'
 
 @Injectable()
 export class UsersService {
@@ -126,6 +127,10 @@ export class UsersService {
     return roles.every((role) => Role[role])
   }
 
+  async validatePassword(password: string, hash: string) {
+    return await this.bcryptService.isMatch(password, hash)
+  }
+
   async findByUsername(username: string) {
     this.logger.log('findByUsername')
     return this.userRepository.findOneBy({ username })
@@ -160,7 +165,7 @@ export class UsersService {
 
   async updateOrder(
     id: ObjectId,
-    updateOrderDto: CreateOrderDto,
+    updateOrderDto: UpdateOrderDto,
     userId: string,
   ) {
     this.logger.log(`Updating order ${id}`)

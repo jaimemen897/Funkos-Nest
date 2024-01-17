@@ -1,14 +1,13 @@
 import { IsNotEmpty, IsString, Matches } from 'class-validator'
 
 export class UserSingUpDto {
-  //name, surname, username, email, password
   @IsString({ message: 'Name must be a string' })
   @IsNotEmpty({ message: 'Name is required' })
-  name: string
+  nombre: string
 
   @IsString({ message: 'Surname must be a string' })
   @IsNotEmpty({ message: 'Surname is required' })
-  surname: string
+  apellidos: string
 
   @IsString({ message: 'Username must be a string' })
   @IsNotEmpty({ message: 'Username is required' })
