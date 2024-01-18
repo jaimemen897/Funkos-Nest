@@ -23,13 +23,13 @@ export class OrdersService {
   private readonly logger = new Logger(OrdersService.name)
 
   constructor(
-    @InjectRepository(Funko)
-    private readonly funkoRepository: Repository<Funko>,
     @InjectRepository(Order, 'mongo')
     private readonly orderRepository: Repository<Order>,
     private readonly orderMapper: OrdersMapper,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Funko)
+    private readonly funkoRepository: Repository<Funko>,
   ) {}
 
   async findAll(options: IPaginationOptions): Promise<Pagination<Order>> {

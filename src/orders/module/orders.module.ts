@@ -5,15 +5,18 @@ import { Order } from '../entities/order.entity'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { OrdersMapper } from '../mapper/order.mapper'
 import { Funko } from '../../funkos/entities/funko.entity'
-import { UsersService } from '../../users/services/users.service'
+import { CacheModule } from '@nestjs/cache-manager'
+import { User } from '../../users/entities/user.entity'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order], 'mongo'),
     TypeOrmModule.forFeature([Funko]),
+    CacheModule.register(),
+    TypeOrmModule.forFeature([User]),
   ],
   controllers: [OrdersController],
-  exports: [TypeOrmModule],
-  providers: [OrdersService, OrdersMapper, UsersService],
+  providers: [OrdersService, OrdersMapper],
+  exports: [OrdersService],
 })
 export class OrdersModule {}
