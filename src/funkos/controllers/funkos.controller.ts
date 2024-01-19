@@ -23,10 +23,24 @@ import { extname, parse } from 'path'
 import { diskStorage } from 'multer'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager'
-import { Paginate, PaginateQuery } from 'nestjs-paginate'
+import { Paginate, Paginated, PaginateQuery } from 'nestjs-paginate'
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiNotFoundResponse,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger'
+import { ResponseFunkoDto } from '../dto/response-funko.dto'
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
+import { Roles, RolesAuthGuard } from '../../auth/guards/roles-auth.guard'
 
 @Controller(`funkos`)
 @UseInterceptors(CacheInterceptor)
+@ApiTags('funkos')
 export class FunkosController {
   private logger = new Logger('FunkosController')
 
@@ -35,6 +49,41 @@ export class FunkosController {
   @Get()
   @CacheKey('all_funkos')
   @CacheTTL(60)
+  @ApiResponse({
+    status: 200,
+    description: 'The records has been successfully fetched.',
+    type: Paginated<ResponseFunkoDto>,
+  })
+  @ApiQuery({
+    description: 'Filtro por limite por pagina',
+    name: 'limit',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    description: 'Filtro por pagina',
+    name: 'page',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    description: 'Filtro de ordenación: campo:ASC|DESC',
+    name: 'sortBy',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    description: 'Filtro de busqueda: filter.campo = $eq:valor',
+    name: 'filter',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    description: 'Filtro de busqueda: search = valor',
+    name: 'search',
+    required: false,
+    type: String,
+  })
   findAll(@Paginate() query: PaginateQuery) {
     this.logger.log('Finding all funkos')
     return this.funkosService.findAll(query)
@@ -43,19 +92,81 @@ export class FunkosController {
   @Get(':id')
   @CacheKey('one_funko')
   @CacheTTL(60)
+  @ApiResponse({
+    status: 200,
+    description: 'The record has been successfully fetched.',
+    type: ResponseFunkoDto,
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Filtro por id',
+  })
+  @ApiNotFoundResponse({
+    description: 'Funko not found',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad request',
+  })
   findOne(@Param('id', ParseIntPipe) id: number) {
     this.logger.log(`Finding funko with id ${id}`)
     return this.funkosService.findOne(+id)
   }
 
   @Post()
+  @HttpCode(201)
+  @UseGuards(JwtAuthGuard, RolesAuthGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 201,
+    description: 'The record has been successfully created.',
+    type: ResponseFunkoDto,
+  })
+  @ApiBody({
+    type: CreateFunkoDto,
+    description: 'Funko data',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'El algunos de los campos no es válido según la especificación del DTO',
+  })
+  @ApiBadRequestResponse({
+    description: 'La categoría no existe o no es válida',
+  })
   create(@Body() createFunkoDto: CreateFunkoDto) {
     this.logger.log('Creating a new funko')
     return this.funkosService.create(createFunkoDto)
   }
 
   @Put(':id')
-  @HttpCode(200)
+  @UseGuards(JwtAuthGuard, RolesAuthGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'The record has been successfully updated.',
+    type: ResponseFunkoDto,
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Filtro por id',
+  })
+  @ApiBody({
+    type: UpdateFunkoDto,
+    description: 'Funko data',
+  })
+  @ApiNotFoundResponse({
+    description: 'Funko not found',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'El algunos de los campos no es válido según la especificación del DTO',
+  })
+  @ApiBadRequestResponse({
+    description: 'La categoría no existe o no es válida',
+  })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateFunkoDto: UpdateFunkoDto,
@@ -66,6 +177,33 @@ export class FunkosController {
 
   @Patch('imagen/:id')
   @UseGuards(FunkoExistsGuard)
+  @UseGuards(JwtAuthGuard, RolesAuthGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 200,
+    description: 'The record has been successfully updated.',
+    type: ResponseFunkoDto,
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Filtro por id',
+  })
+  @ApiBody({
+    type: UpdateFunkoDto,
+    description: 'Funko data',
+  })
+  @ApiNotFoundResponse({
+    description: 'Funko not found',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'El algunos de los campos no es válido según la especificación del DTO',
+  })
+  @ApiBadRequestResponse({
+    description: 'La categoría no existe o no es válida',
+  })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -116,6 +254,24 @@ export class FunkosController {
 
   @Delete(':id')
   @HttpCode(204)
+  @UseGuards(JwtAuthGuard, RolesAuthGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 204,
+    description: 'The record has been successfully deleted.',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Filtro por id',
+  })
+  @ApiNotFoundResponse({
+    description: 'Funko not found',
+  })
+  @ApiBadRequestResponse({
+    description: 'El id no es válido',
+  })
   remove(@Param('id') id: number) {
     this.logger.log(`Deleting funko with id ${id}`)
     return this.funkosService.remove(+id)

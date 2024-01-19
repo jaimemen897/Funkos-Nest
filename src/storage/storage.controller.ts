@@ -16,8 +16,10 @@ import { Request, Response } from 'express'
 import * as process from 'process'
 import { v4 as uuidv4 } from 'uuid'
 import { extname } from 'path'
+import { ApiExcludeController } from '@nestjs/swagger'
 
 @Controller('storage')
+@ApiExcludeController()
 export class StorageController {
   private readonly logger = new Logger(StorageController.name)
 

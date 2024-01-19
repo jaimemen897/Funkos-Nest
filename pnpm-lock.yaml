@@ -32,6 +32,9 @@ dependencies:
   '@nestjs/platform-socket.io':
     specifier: ^10.3.0
     version: 10.3.0(@nestjs/common@10.3.0)(@nestjs/websockets@10.3.0)(rxjs@7.8.1)
+  '@nestjs/swagger':
+    specifier: ^7.2.0
+    version: 7.2.0(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.14)
   '@nestjs/typeorm':
     specifier: ^10.0.1
     version: 10.0.1(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(reflect-metadata@0.1.14)(rxjs@7.8.1)(typeorm@0.3.17)
@@ -50,12 +53,15 @@ dependencies:
   class-validator:
     specifier: ^0.14.0
     version: 0.14.0
+  dotenv:
+    specifier: ^16.3.1
+    version: 16.3.1
   mongodb:
     specifier: ^6.3.0
     version: 6.3.0
   nestjs-paginate:
     specifier: ^8.6.0
-    version: 8.6.0(@nestjs/common@10.3.0)(@nestjs/swagger@7.1.17)(express@4.18.2)(fastify@4.25.2)(typeorm@0.3.17)
+    version: 8.6.0(@nestjs/common@10.3.0)(@nestjs/swagger@7.2.0)(express@4.18.2)(fastify@4.25.2)(typeorm@0.3.17)
   nestjs-typeorm-paginate:
     specifier: ^4.0.4
     version: 4.0.4(@nestjs/common@10.3.0)(typeorm@0.3.17)
@@ -118,6 +124,9 @@ devDependencies:
   '@typescript-eslint/parser':
     specifier: ^6.0.0
     version: 6.15.0(eslint@8.56.0)(typescript@5.3.3)
+  cross-env:
+    specifier: ^7.0.3
+    version: 7.0.3
   eslint:
     specifier: ^8.42.0
     version: 8.56.0
@@ -1164,8 +1173,8 @@ packages:
       - chokidar
     dev: true
 
-  /@nestjs/swagger@7.1.17(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.14):
-    resolution: {integrity: sha512-ASCxBrvMEN2o/8vEEmrIPMNzrr/hVi7QIR4y1oNYvoBNXHuwoF1VSI3+4Rq/3xmwVnVveJxHlBIs2u5xY9VgGQ==}
+  /@nestjs/swagger@7.2.0(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.14):
+    resolution: {integrity: sha512-W7WPq561/79w27ZEgViXS7c5hqPwT7QXhsLsSeu2jeBROUhMM825QKDFKbMmtb643IW5dznJ4PjherlZZgtMvg==}
     peerDependencies:
       '@fastify/static': ^6.0.0
       '@nestjs/common': ^9.0.0 || ^10.0.0
@@ -1190,7 +1199,7 @@ packages:
       lodash: 4.17.21
       path-to-regexp: 3.2.0
       reflect-metadata: 0.1.14
-      swagger-ui-dist: 5.10.3
+      swagger-ui-dist: 5.11.0
     dev: false
 
   /@nestjs/testing@10.3.0(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(@nestjs/platform-express@10.3.0):
@@ -2569,6 +2578,14 @@ packages:
 
   /create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
+
+  /cross-env@7.0.3:
+    resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
+    engines: {node: '>=10.14', npm: '>=6', yarn: '>=1'}
+    hasBin: true
+    dependencies:
+      cross-spawn: 7.0.3
+    dev: true
 
   /cross-spawn@7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
@@ -4691,7 +4708,7 @@ packages:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
     dev: true
 
-  /nestjs-paginate@8.6.0(@nestjs/common@10.3.0)(@nestjs/swagger@7.1.17)(express@4.18.2)(fastify@4.25.2)(typeorm@0.3.17):
+  /nestjs-paginate@8.6.0(@nestjs/common@10.3.0)(@nestjs/swagger@7.2.0)(express@4.18.2)(fastify@4.25.2)(typeorm@0.3.17):
     resolution: {integrity: sha512-RlkNM9OsjNergrERoN95pBevpXLC4rGOwsvNg/7IeiYZcct+upCkSf3rM9R/dzWwMJJg6pjVbGYg3CU2RkFgxw==}
     peerDependencies:
       '@nestjs/common': ^10.2.10
@@ -4701,7 +4718,7 @@ packages:
       typeorm: ^0.3.17
     dependencies:
       '@nestjs/common': 10.3.0(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.14)(rxjs@7.8.1)
-      '@nestjs/swagger': 7.1.17(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.14)
+      '@nestjs/swagger': 7.2.0(@nestjs/common@10.3.0)(@nestjs/core@10.3.0)(class-transformer@0.5.1)(class-validator@0.14.0)(reflect-metadata@0.1.14)
       express: 4.18.2
       fastify: 4.25.2
       lodash: 4.17.21
@@ -5800,8 +5817,8 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /swagger-ui-dist@5.10.3:
-    resolution: {integrity: sha512-fu3aozjxFWsmcO1vyt1q1Ji2kN7KlTd1vHy27E9WgPyXo9nrEzhQPqgxaAjbMsOmb8XFKNGo4Sa3Q+84Fh+pFw==}
+  /swagger-ui-dist@5.11.0:
+    resolution: {integrity: sha512-j0PIATqQSEFGOLmiJOJZj1X1Jt6bFIur3JpY7+ghliUnfZs0fpWDdHEkn9q7QUlBtKbkn6TepvSxTqnE8l3s0A==}
     dev: false
 
   /symbol-observable@4.0.0:

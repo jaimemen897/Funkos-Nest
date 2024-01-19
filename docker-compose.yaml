@@ -29,6 +29,25 @@ services:
       - ./database/funkos.js:/docker-entrypoint-initdb.d/funkos.js:ro
     networks:
       - funko-network
+  funkos-api-rest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: funkos-api-rest
+    restart: always
+    env_file: .env.prod
+    ports:
+      - ${API_PORT}:3000
+    volumes:
+      - storage-dir:/app/storage-dir
+      - ./cert:/app/cert
+    networks:
+      - funko-network
+    depends_on:
+      - postgres-db
+      - mongo-db
+volumes:
+  storage-dir:
 networks:
   funko-network:
     driver: bridge

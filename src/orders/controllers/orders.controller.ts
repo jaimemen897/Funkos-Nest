@@ -22,10 +22,12 @@ import { Roles, RolesAuthGuard } from '../../auth/guards/roles-auth.guard'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { CacheInterceptor } from '@nestjs/cache-manager'
 import { UserExitsGuards } from '../guards/user-exits.guards'
+import { ApiExcludeController } from '@nestjs/swagger'
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard, RolesAuthGuard)
 @UseInterceptors(CacheInterceptor)
+@ApiExcludeController()
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
