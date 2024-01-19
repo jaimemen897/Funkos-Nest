@@ -11,11 +11,8 @@ import { ObjectId, Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { OrdersMapper } from '../mapper/order.mapper'
 import { Funko } from '../../funkos/entities/funko.entity'
-import {
-  IPaginationOptions,
-  paginate,
-  Pagination,
-} from 'nestjs-typeorm-paginate'
+import { paginate, Pagination } from 'nestjs-typeorm-paginate'
+import { PaginationInterface } from '../interfaces/paginationInterface'
 import { User } from '../../users/entities/user.entity'
 
 @Injectable()
@@ -32,8 +29,10 @@ export class OrdersService {
     private readonly funkoRepository: Repository<Funko>,
   ) {}
 
-  async findAll(options: IPaginationOptions): Promise<Pagination<Order>> {
-    return paginate<Order>(this.orderRepository, options)
+  async findAll(options: PaginationInterface): Promise<Pagination<Order>> {
+    return paginate<Order>(this.orderRepository, options, {
+      where: { isDeleted: options.isDeleted },
+    })
   }
 
   async findOne(id: ObjectId) {
@@ -89,18 +88,13 @@ export class OrdersService {
     await this.orderRepository.delete({ _id: id })
   }
 
-  async findByIdUser(idUser: string) {
-    this.logger.log(`Finding order by user ${idUser}`)
-    return await this.orderRepository.findBy({ idClient: idUser })
-  }
-
   async userExists(idClient: number) {
     this.logger.log(`Checking if user ${idClient} exists`)
     const user = await this.userRepository.findOneBy({ id: idClient })
     return !!user
   }
 
-  async getOrderByUser(idUser: string): Promise<Order[]> {
+  async getOrdersByUser(idUser: string): Promise<Order[]> {
     this.logger.log(`Buscando pedidos por usuario ${idUser}`)
     return await this.orderRepository.find({ where: { idClient: idUser } })
   }
@@ -118,17 +112,17 @@ export class OrdersService {
       })
       if (!product) {
         throw new BadRequestException(
-          `Product ${orderLine.idFunko} does not exist`,
+          `Funko ${orderLine.idFunko} does not exist`,
         )
       }
       if (product.stock < orderLine.quantity && orderLine.quantity > 0) {
         throw new BadRequestException(
-          `Product ${orderLine.idFunko} does not have enough stock`,
+          `Funko ${orderLine.idFunko} does not have enough stock`,
         )
       }
       if (product.price != orderLine.price) {
         throw new BadRequestException(
-          `Product ${orderLine.idFunko} price has changed`,
+          `Funko ${orderLine.idFunko} price has changed`,
         )
       }
     }

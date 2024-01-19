@@ -7,6 +7,8 @@ import { UpdateOrderDto } from '../dto/update-order.dto'
 @Injectable()
 export class OrdersMapper {
   toEntity(createOrderDto: CreateOrderDto | UpdateOrderDto): Order {
-    return plainToClass(Order, createOrderDto)
+    const dto = plainToClass(Order, createOrderDto)
+    dto.isDeleted = false
+    return dto
   }
 }

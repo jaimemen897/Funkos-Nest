@@ -7,8 +7,8 @@ import { CreateUserDto } from '../../users/dto/create-user.dto'
 export class AuthMapper {
   toCreateDto(userSignUpDto: UserSingUpDto): CreateUserDto {
     const userCreateDto = new CreateUserDto()
-    userCreateDto.nombre = userSignUpDto.nombre
-    userCreateDto.apellidos = userSignUpDto.apellidos
+    userCreateDto.nombre = userSignUpDto.name
+    userCreateDto.apellidos = userSignUpDto.surnames
     userCreateDto.username = userSignUpDto.username
     userCreateDto.email = userSignUpDto.email
     userCreateDto.password = userSignUpDto.password

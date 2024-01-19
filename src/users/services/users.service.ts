@@ -142,7 +142,7 @@ export class UsersService {
   }
 
   async getOrders(id: string) {
-    return await this.orderService.getOrderByUser(id)
+    return await this.orderService.getOrdersByUser(id)
   }
 
   async getOrder(id: string, idOrder: ObjectId) {

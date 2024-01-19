@@ -5,6 +5,8 @@ import { Funko } from '../../funkos/entities/funko.entity'
 import { Category } from '../../category/entities/category.entity'
 import * as process from 'process'
 import { Order } from '../../orders/entities/order.entity'
+import { User } from '../../users/entities/user.entity'
+import { UserRole } from '../../users/entities/user-role.entity'
 
 @Module({
   imports: [
@@ -18,7 +20,7 @@ import { Order } from '../../orders/entities/order.entity'
         username: process.env.DATABASE_USER,
         password: process.env.DATABASE_PASSWORD,
         database: process.env.DATABASE_NAME,
-        entities: [Funko, Category],
+        entities: [Funko, Category, User, UserRole],
         synchronize: true,
       }),
     }),
@@ -37,7 +39,7 @@ import { Order } from '../../orders/entities/order.entity'
   ],
   providers: [],
   exports: [
-    TypeOrmModule.forFeature([Funko, Category]),
+    TypeOrmModule.forFeature([Funko, Category, User, UserRole]),
     TypeOrmModule.forFeature([Order]),
   ],
 })
