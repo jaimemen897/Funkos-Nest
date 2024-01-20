@@ -10,7 +10,7 @@ import { UserRole } from '../../users/entities/user-role.entity'
 
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: () => ({
@@ -27,10 +27,11 @@ import { UserRole } from '../../users/entities/user-role.entity'
     TypeOrmModule.forRoot({
       name: 'mongo',
       type: 'mongodb',
-      username: 'funko',
-      password: 'funko',
-      port: 27017,
-      database: 'database',
+      host: process.env.MONGO_HOST || 'localhost',
+      username: process.env.MONGO_USER || 'funko',
+      password: process.env.MONGO_PASSWORD || 'funko',
+      port: parseInt(process.env.MONGO_PORT) || 27017,
+      database: process.env.MONGO_DB || 'database',
       retryAttempts: 5,
       synchronize: true,
       entities: [Order],

@@ -4,9 +4,10 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm i
+RUN npm ci
 
-COPY ./cert /app/cert
+COPY ./cert/keystore.p12 ./cert/keystore.p12
+COPY ./cert/cert.pem ./cert/cert.pem
 COPY . .
 COPY .env .env
 COPY .env.prod .env.prod

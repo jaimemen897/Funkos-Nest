@@ -30,6 +30,7 @@ services:
     networks:
       - funko-network
   funkos-api-rest:
+    image: mi-aplicacion
     build:
       context: .
       dockerfile: Dockerfile
