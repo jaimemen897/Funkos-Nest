@@ -6,9 +6,8 @@ import { getSSLOptions } from './config/ssl/ssl.config'
 import { setupSwagger } from './config/swagger/swagger.config'
 import * as dotenv from 'dotenv'
 
-dotenv.config()
-
 async function bootstrap() {
+  dotenv.config()
   if (process.env.NODE_ENV === 'dev') {
     console.log('🛠️ Iniciando Modo desarrollo')
   } else {

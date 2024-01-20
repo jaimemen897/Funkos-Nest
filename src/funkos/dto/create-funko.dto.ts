@@ -47,7 +47,7 @@ export class CreateFunkoDto {
   image?: string
 
   @ApiProperty({
-    example: 'Funko de Batman',
+    example: 'DC',
     description: 'Categoría del Funko',
   })
   @IsString({ message: 'La categoría debe ser un string' })

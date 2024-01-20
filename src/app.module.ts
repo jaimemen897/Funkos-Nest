@@ -16,7 +16,7 @@ import { UsersModule } from './users/module/users.module'
     CacheModule.register(),
     ConfigModule.forRoot(
       process.env.NODE_ENV === 'dev'
-        ? { envFilePath: '.env.dev' || '.env' }
+        ? { envFilePath: '.env' }
         : { envFilePath: '.env.prod' },
     ),
     FunkosModule,

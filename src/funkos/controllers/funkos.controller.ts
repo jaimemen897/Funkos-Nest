@@ -52,7 +52,7 @@ export class FunkosController {
   @ApiResponse({
     status: 200,
     description: 'The records has been successfully fetched.',
-    type: Paginated<ResponseFunkoDto>,
+    type: Paginated<ResponseFunkoDto[]>,
   })
   @ApiQuery({
     description: 'Filtro por limite por pagina',

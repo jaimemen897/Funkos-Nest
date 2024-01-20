@@ -17,12 +17,18 @@ import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager'
 import { Paginate, PaginateQuery } from 'nestjs-paginate'
 import { Roles, RolesAuthGuard } from '../../auth/guards/roles-auth.guard'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
-import { ApiExcludeController } from '@nestjs/swagger'
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger'
 
 @Controller('category')
 @UseInterceptors(CacheInterceptor)
 @UseGuards(JwtAuthGuard, RolesAuthGuard)
-@ApiExcludeController()
+@ApiTags('category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
@@ -45,6 +51,27 @@ export class CategoryController {
   @Post()
   @HttpCode(201)
   @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 201,
+    description: 'The record has been successfully created.',
+  })
+  @ApiBody({
+    type: CreateCategoryDto,
+    description: 'Category data',
+  })
+  @ApiBadRequestResponse({
+    status: 400,
+    description: 'Bad request.',
+  })
+  @ApiBadRequestResponse({
+    status: 401,
+    description: 'Unauthorized.',
+  })
+  @ApiBadRequestResponse({
+    status: 403,
+    description: 'Forbidden.',
+  })
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoryService.create(createCategoryDto)
   }
