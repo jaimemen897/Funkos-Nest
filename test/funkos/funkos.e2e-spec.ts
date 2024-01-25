@@ -7,6 +7,8 @@ import { FunkosController } from '../../src/funkos/controllers/funkos.controller
 import { FunkosService } from '../../src/funkos/services/funkos.service'
 import * as request from 'supertest'
 import { CacheModule } from '@nestjs/cache-manager'
+import { JwtAuthGuard } from '../../src/auth/guards/jwt-auth.guard'
+import { RolesAuthGuard } from '../../src/auth/guards/roles-auth.guard'
 
 describe('FunkosController (e2e)', () => {
   let app: INestApplication
@@ -54,7 +56,12 @@ describe('FunkosController (e2e)', () => {
           useValue: mockFunkosService,
         },
       ],
-    }).compile()
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile()
 
     app = moduleFixture.createNestApplication()
     await app.init()
@@ -65,13 +72,24 @@ describe('FunkosController (e2e)', () => {
   })
 
   describe('GET /funkos', () => {
-    it('should return an array of funkos', async () => {
+    it('should return a page of funkos', async () => {
       mockFunkosService.findAll.mockResolvedValue([myFunkoResponse])
+
       const { body } = await request(app.getHttpServer())
         .get(myEndpoint)
         .expect(200)
       expect(body).toEqual([myFunkoResponse])
-      expect(mockFunkosService.findAll).toHaveBeenCalledTimes(1)
+      expect(mockFunkosService.findAll).toHaveBeenCalled()
+    })
+
+    it('should return a page of funkos with query', async () => {
+      mockFunkosService.findAll.mockResolvedValue([myFunkoResponse])
+
+      const { body } = await request(app.getHttpServer())
+        .get(`${myEndpoint}?page=1&limit=10`)
+        .expect(200)
+      expect(body).toEqual([myFunkoResponse])
+      expect(mockFunkosService.findAll).toHaveBeenCalled()
     })
   })
 

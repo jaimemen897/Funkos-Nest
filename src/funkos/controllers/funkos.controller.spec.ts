@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { FunkosController } from './funkos.controller'
 import { FunkosService } from '../services/funkos.service'
 import { ResponseFunkoDto } from '../dto/response-funko.dto'
-import { BadRequestException, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { CacheModule } from '@nestjs/cache-manager'
 import { Paginated } from 'nestjs-paginate'
 
@@ -103,6 +108,34 @@ describe('FunkosController', () => {
       await controller.create(mockData)
       expect(service.create).toHaveBeenCalledWith(mockData)
       expect(mockResult).toBeInstanceOf(ResponseFunkoDto)
+    })
+
+    it('should throw an error if not authenticated', async () => {
+      const mockData = {
+        name: 'Funko 1',
+        price: 10,
+        stock: 10,
+        category: 'category',
+      }
+      jest
+        .spyOn(service, 'create')
+        .mockRejectedValue(new UnauthorizedException())
+      await expect(controller.create(mockData)).rejects.toThrow(
+        UnauthorizedException,
+      )
+    })
+
+    it('should throw an error if user does not have ADMIN role', async () => {
+      const mockData = {
+        name: 'Funko 1',
+        price: 10,
+        stock: 10,
+        category: 'category',
+      }
+      jest.spyOn(service, 'create').mockRejectedValue(new ForbiddenException())
+      await expect(controller.create(mockData)).rejects.toThrow(
+        ForbiddenException,
+      )
     })
 
     it('should throw an error bad request name empty', async () => {

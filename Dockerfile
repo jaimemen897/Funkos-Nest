@@ -11,7 +11,6 @@ COPY ./cert/cert.pem ./cert/cert.pem
 COPY . .
 COPY .env .env
 COPY .env.prod .env.prod
-RUN ls -a
 
 #RUN npm run test
 RUN npm run build

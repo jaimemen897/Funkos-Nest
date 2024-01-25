@@ -7,13 +7,14 @@ import {
 import { CreateOrderDto } from '../dto/create-order.dto'
 import { UpdateOrderDto } from '../dto/update-order.dto'
 import { Order } from '../entities/order.entity'
-import { ObjectId, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { OrdersMapper } from '../mapper/order.mapper'
 import { Funko } from '../../funkos/entities/funko.entity'
 import { paginate, Pagination } from 'nestjs-typeorm-paginate'
 import { PaginationInterface } from '../interfaces/paginationInterface'
 import { User } from '../../users/entities/user.entity'
+import { ObjectId } from 'mongodb'
 
 @Injectable()
 export class OrdersService {
@@ -35,11 +36,12 @@ export class OrdersService {
     })
   }
 
-  async findOne(id: ObjectId) {
+  async findOne(id: string): Promise<Order> {
     this.logger.log(`Finding order ${id}`)
-    const order = await this.orderRepository.findOneBy({ _id: id })
+    const idParsed = new ObjectId(id)
+    const order = await this.orderRepository.findOneBy({ _id: idParsed })
     if (!order) {
-      throw new NotFoundException(`Order #${id} not found`)
+      throw new NotFoundException(`Order ${id} not found`)
     }
     return order
   }
@@ -60,9 +62,12 @@ export class OrdersService {
     return await this.orderRepository.save(orderToSave)
   }
 
-  async update(id: ObjectId, updateOrderDto: UpdateOrderDto) {
+  async update(id: string, updateOrderDto: UpdateOrderDto) {
     this.logger.log(`Updating order ${id}`)
-    const orderToUpdate = await this.orderRepository.findOneBy({ _id: id })
+    const idParsed = new ObjectId(id)
+    const orderToUpdate = await this.orderRepository.findOneBy({
+      _id: idParsed,
+    })
     if (!orderToUpdate) {
       throw new NotFoundException(`Order #${id} not found`)
     }
@@ -77,15 +82,19 @@ export class OrdersService {
     return await this.orderRepository.save(orderToSave)
   }
 
-  async remove(id: ObjectId) {
+  async remove(id: string) {
     this.logger.log(`Removing order ${id}`)
 
-    const orderToDelete = await this.orderRepository.findOneBy({ _id: id })
+    const idParsed = new ObjectId(id)
+
+    const orderToDelete = await this.orderRepository.findOneBy({
+      _id: idParsed,
+    })
     if (!orderToDelete) {
       throw new NotFoundException(`Order #${id} not found`)
     }
     await this.returnStockOrders(orderToDelete)
-    await this.orderRepository.delete({ _id: id })
+    await this.orderRepository.delete({ _id: idParsed })
   }
 
   async userExists(idClient: number) {

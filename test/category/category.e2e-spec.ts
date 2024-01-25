@@ -7,6 +7,8 @@ import { UpdateCategoryDto } from '../../src/category/dto/update-category.dto'
 import { CategoryController } from '../../src/category/controllers/category.controller'
 import { CategoryService } from '../../src/category/services/category.service'
 import { CacheModule } from '@nestjs/cache-manager'
+import { JwtAuthGuard } from '../../src/auth/guards/jwt-auth.guard'
+import { RolesAuthGuard } from '../../src/auth/guards/roles-auth.guard'
 
 describe('categoryController (e2e)', () => {
   let app: INestApplication
@@ -47,7 +49,12 @@ describe('categoryController (e2e)', () => {
           useValue: mockCategoryService,
         },
       ],
-    }).compile()
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile()
 
     app = moduleFixture.createNestApplication()
     await app.init()
@@ -58,18 +65,27 @@ describe('categoryController (e2e)', () => {
   })
 
   describe('GET /category', () => {
-    it('should return an array of category', async () => {
+    it('should return a page of categories', async () => {
       mockCategoryService.findAll.mockResolvedValue([myCategoryResponse])
+
       const { body } = await request(app.getHttpServer())
         .get(myEndpoint)
         .expect(200)
-      const bodyDate = body.map((category) => {
-        category.createdAt = new Date(category.createdAt)
-        category.updatedAt = new Date(category.updatedAt)
-        return category
+      expect(() => {
+        expect(body).toEqual([myCategoryResponse])
+        expect(mockCategoryService.findAll).toHaveBeenCalled()
       })
-      expect(bodyDate).toEqual([myCategoryResponse])
-      expect(mockCategoryService.findAll).toHaveBeenCalledTimes(1)
+    })
+    it('should return a page of categories with query', async () => {
+      mockCategoryService.findAll.mockResolvedValue([myCategoryResponse])
+
+      const { body } = await request(app.getHttpServer())
+        .get(`${myEndpoint}?page=1&limit=10`)
+        .expect(200)
+      expect(() => {
+        expect(body).toEqual([myCategoryResponse])
+        expect(mockCategoryService.findAll).toHaveBeenCalled()
+      })
     })
   })
 

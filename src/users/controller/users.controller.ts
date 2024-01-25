@@ -23,7 +23,6 @@ import { UpdateUserDto } from '../dto/update-user.dto'
 import { CreateOrderDto } from '../../orders/dto/create-order.dto'
 import { UpdateOrderDto } from '../../orders/dto/update-order.dto'
 import { IdValidatePipe } from '../../orders/pipes/id-validate.pipe'
-import { ObjectId } from 'typeorm'
 
 @Controller('users')
 @UseInterceptors(CacheInterceptor)
@@ -45,7 +44,7 @@ export class UsersController {
 
   @Get(':id')
   @Roles('ADMIN')
-  async findOne(id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     this.logger.log(`findOne: ${id}`)
     return await this.usersService.findOne(id)
   }
@@ -98,10 +97,7 @@ export class UsersController {
   }
 
   @Get('me/orders/:id')
-  async getOrder(
-    @Req() request: any,
-    @Param('id', IdValidatePipe) id: ObjectId,
-  ) {
+  async getOrder(@Req() request: any, @Param('id') id: string) {
     return await this.usersService.getOrder(request.user.id, id)
   }
 
@@ -119,7 +115,7 @@ export class UsersController {
   @Put('me/orders/:id')
   @Roles('USER')
   async updateOrder(
-    @Param('id', IdValidatePipe) id: ObjectId,
+    @Param('id', IdValidatePipe) id: string,
     @Body() updateOrderDto: UpdateOrderDto,
     @Req() request: any,
   ) {
@@ -136,10 +132,7 @@ export class UsersController {
   @Delete('me/orders/:id')
   @HttpCode(204)
   @Roles('USER')
-  async removeOrder(
-    @Param('id', IdValidatePipe) id: ObjectId,
-    @Req() request: any,
-  ) {
+  async removeOrder(@Param('id') id: string, @Req() request: any) {
     this.logger.log(`Eliminando order con id ${id}`)
     await this.usersService.removeOrder(id, request.user.id)
   }

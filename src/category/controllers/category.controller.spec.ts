@@ -5,6 +5,7 @@ import { CategoryResponseDto } from '../dto/category-response.dto'
 import { CacheModule } from '@nestjs/cache-manager'
 import { Paginated } from 'nestjs-paginate'
 import { Category } from '../entities/category.entity'
+import { ForbiddenException, UnauthorizedException } from '@nestjs/common'
 
 describe('CategoryController', () => {
   let controller: CategoryController
@@ -96,6 +97,28 @@ describe('CategoryController', () => {
       await controller.create(mockBody)
       expect(service.create).toHaveBeenCalledWith(mockBody)
       expect(mockResult).toBeInstanceOf(CategoryResponseDto)
+    })
+
+    it('should throw an error if not authenticated', async () => {
+      const mockData = {
+        name: 'Category 1',
+      }
+      jest
+        .spyOn(service, 'create')
+        .mockRejectedValue(new UnauthorizedException())
+      await expect(controller.create(mockData)).rejects.toThrow(
+        UnauthorizedException,
+      )
+    })
+
+    it('should throw an error if user does not have ADMIN role', async () => {
+      const mockData = {
+        name: 'Category 1',
+      }
+      jest.spyOn(service, 'create').mockRejectedValue(new ForbiddenException())
+      await expect(controller.create(mockData)).rejects.toThrow(
+        ForbiddenException,
+      )
     })
   })
 

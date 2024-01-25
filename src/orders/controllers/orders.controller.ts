@@ -17,7 +17,6 @@ import {
 import { OrdersService } from '../services/orders.service'
 import { CreateOrderDto } from '../dto/create-order.dto'
 import { UpdateOrderDto } from '../dto/update-order.dto'
-import { ObjectId } from 'typeorm'
 import { Roles, RolesAuthGuard } from '../../auth/guards/roles-auth.guard'
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard'
 import { CacheInterceptor } from '@nestjs/cache-manager'
@@ -50,7 +49,7 @@ export class OrdersController {
 
   @Get(':id')
   @Roles('ADMIN')
-  async findOne(@Param('id') id: ObjectId) {
+  async findOne(@Param('id') id: string) {
     return this.ordersService.findOne(id)
   }
 
@@ -72,7 +71,7 @@ export class OrdersController {
   @UseGuards(UserExitsGuards)
   @Roles('ADMIN')
   async update(
-    @Param('id') id: ObjectId,
+    @Param('id') id: string,
     @Body() updateOrderDto: UpdateOrderDto,
   ) {
     return this.ordersService.update(id, updateOrderDto)
@@ -81,7 +80,7 @@ export class OrdersController {
   @Delete(':id')
   @HttpCode(204)
   @Roles('ADMIN')
-  async remove(@Param('id') id: ObjectId) {
+  async remove(@Param('id') id: string) {
     return this.ordersService.remove(id)
   }
 }

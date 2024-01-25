@@ -3,16 +3,17 @@ import {
   ForbiddenException,
   Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common'
 import { CreateUserDto } from '../dto/create-user.dto'
 import { UpdateUserDto } from '../dto/update-user.dto'
 import { User } from '../entities/user.entity'
 import { InjectRepository } from '@nestjs/typeorm'
-import { ObjectId, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { Role, UserRole } from '../entities/user-role.entity'
 import { OrdersService } from '../../orders/services/orders.service'
 import { UsersMapper } from '../mappers/users.mapper'
-import { BcryptService } from '../bcrypt.service'
+import { BcryptService } from './bcrypt.service'
 import { CreateOrderDto } from '../../orders/dto/create-order.dto'
 import { UpdateOrderDto } from '../../orders/dto/update-order.dto'
 
@@ -39,9 +40,11 @@ export class UsersService {
 
   async findOne(id: number) {
     this.logger.log('findOne')
-    return this.userMapper.toResponseDto(
-      await this.userRepository.findOneBy({ id }),
-    )
+    const user = await this.userRepository.findOneBy({ id })
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+    return this.userMapper.toResponseDto(user)
   }
 
   async create(createUserDto: CreateUserDto) {
@@ -145,7 +148,7 @@ export class UsersService {
     return await this.orderService.getOrdersByUser(id)
   }
 
-  async getOrder(id: string, idOrder: ObjectId) {
+  async getOrder(id: string, idOrder: string) {
     const order = await this.orderService.findOne(idOrder)
     if (order.idClient !== id) {
       throw new ForbiddenException('You are not allowed to see this order')
@@ -164,7 +167,7 @@ export class UsersService {
   }
 
   async updateOrder(
-    id: ObjectId,
+    id: string,
     updateOrderDto: UpdateOrderDto,
     userId: string,
   ) {
@@ -181,7 +184,7 @@ export class UsersService {
     return await this.orderService.update(id, updateOrderDto)
   }
 
-  async removeOrder(id: ObjectId, userId: string) {
+  async removeOrder(id: string, userId: string) {
     this.logger.log(`Removing order ${id}`)
     const order = await this.orderService.findOne(id)
     if (order.idClient !== userId) {

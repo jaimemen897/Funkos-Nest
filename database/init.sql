@@ -23,11 +23,9 @@ INSERT INTO "users" ("is_deleted", "created_at", "id", "updated_at", "apellidos"
 VALUES ('f', '2023-11-02 11:43:24.724871', 1, '2023-11-02 11:43:24.724871', 'Admin Admin', 'admin@prueba.net', 'Admin',
         '$2a$12$Kr2XsQQTMASxRfsqc8lzC.DGL4wDsQZY2rmYgDB5wtoGf9JgrlERG', 'admin'),
        ('f', '2023-11-02 11:43:24.730431', 2, '2023-11-02 11:43:24.730431', 'User User', 'user@prueba.net', 'User',
-        '$2a$12$RUq2ScW1Kiizu5K4gKoK4OTz80.DWaruhdyfi2lZCB.KeuXTBh0S.', 'user'),
+        '$2a$12$xxs9QBt2z4LcARkm80FWhOYDsvJemUihG4Xehu61WLgzszsi27V2i', 'user'),
        ('f', '2023-11-02 11:43:24.733552', 3, '2023-11-02 11:43:24.733552', 'Test Test', 'test@prueba.net', 'Test',
-        '$2a$10$Pd1yyq2NowcsDf4Cpf/ZXObYFkcycswqHAqBndE1wWJvYwRxlb.Pu', 'test'),
-       ('f', '2023-11-02 11:43:24.736674', 4, '2023-11-02 11:43:24.736674', 'Otro Otro', 'otro@prueba.net', 'otro',
-        '$2a$12$3Q4.UZbvBMBEvIwwjGEjae/zrIr6S50NusUlBcCNmBd2382eyU0bS', 'otro');
+        '$2a$12$O1IgSRg8VTGR2nN0kh0T1OIo2ifB4DONwwXvNegkZ.8J8UbCtdFvS', 'test');
 
 DROP TABLE IF EXISTS "user_roles";
 DROP SEQUENCE IF EXISTS user_roles_id_seq;
@@ -43,4 +41,6 @@ CREATE TABLE "public"."user_roles"
 
 INSERT INTO "user_roles" ("user_id", "role", "id")
 VALUES (1, 'USER', 1),
-       (1, 'ADMIN', 2);
+       (1, 'ADMIN', 2),
+       (2, 'USER', 3),
+       (3, 'USER', 4);
