@@ -33,8 +33,6 @@ export class UsersController {
 
   constructor(private readonly usersService: UsersService) {}
 
-  /// GESTION, SOLO ADMINISTRADOR
-
   @Get()
   @Roles('ADMIN')
   async findAll() {
@@ -67,7 +65,6 @@ export class UsersController {
     return await this.usersService.update(id, updateUserDto, true)
   }
 
-  // ME/PROFILE, CUALQUIER USUARIO AUTENTICADO
   @Get('me/profile')
   @Roles('USER')
   async getProfile(@Req() request: any) {
@@ -90,7 +87,6 @@ export class UsersController {
     return await this.usersService.update(request.user.id, updateUserDto, false)
   }
 
-  // ME/PEDIDOS, CUALQUIER USUARIO AUTENTICADO siempre y cuando el id del usuario coincida con el id del order
   @Get('me/orders')
   async getOrders(@Req() request: any) {
     return await this.usersService.getOrders(request.user.id)

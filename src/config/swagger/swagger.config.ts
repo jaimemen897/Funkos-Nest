@@ -7,7 +7,6 @@ export function setupSwagger(app: INestApplication) {
     .setDescription(
       'API REST para la gestión de Funkos con Nestjs, TypeORM, JWT, Swagger, etc.',
     )
-    .setLicense('CC BY-NC-SA 4.0', 'https://joseluisgs.dev/docs/license/')
     .setVersion('1.0.0')
     .addBearerAuth()
     .build()

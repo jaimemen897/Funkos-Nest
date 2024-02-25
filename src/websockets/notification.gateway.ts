@@ -12,7 +12,7 @@ export class NotificationGateway {
   private readonly logger = new Logger(NotificationGateway.name)
 
   constructor() {
-    this.logger.log(`WebSocketGateway created`)
+    this.logger.log(`NotificationGateway created`)
   }
 
   sendMessage(
@@ -20,14 +20,10 @@ export class NotificationGateway {
     notification: ResponseFunkoDto | CategoryResponseDto,
   ) {
     if (this.isFunko(notification)) {
-      this.logger.log(
-        `Sending message to clients: ${JSON.stringify(notification)}`,
-      )
+      this.logger.log(`Sending message: ${JSON.stringify(notification)}`)
       this.server.emit(`FUNKO_${tipo}`, notification)
     } else {
-      this.logger.log(
-        `Sending message to clients: ${JSON.stringify(notification)}`,
-      )
+      this.logger.log(`Sending message: ${JSON.stringify(notification)}`)
       this.server.emit(`CATEGORY_${tipo}`, notification)
     }
   }
@@ -40,11 +36,11 @@ export class NotificationGateway {
 
   private handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`)
-    this.server.emit('connection', 'Connected to FunkoNotificationGateway')
+    this.server.emit('connection', 'Connected to NotificationGateway')
   }
 
   private handleDisconnect(client: Socket) {
-    console.log('Cliente desconectado', client.id)
+    console.log('Client disconnected', client.id)
     this.logger.log(`Client disconnected: ${client.id}`)
   }
 }

@@ -18,11 +18,11 @@ export class RolesExistsGuard implements CanActivate {
     const roles = request.body.roles
 
     if (!roles || roles.length === 0) {
-      throw new BadRequestException('El usuario debe tener al menos un rol')
+      throw new BadRequestException('The user must have at least one role')
     }
 
     if (!this.usersService.validateRoles(roles)) {
-      throw new BadRequestException('El usuario tiene roles inválidos')
+      throw new BadRequestException('Invalid roles')
     }
 
     return true
